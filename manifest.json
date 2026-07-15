@@ -1,0 +1,23 @@
+{
+    "name": "مكتب الدكتور محمد العوابدي المحامي بالاستئناف العالي ومجلس الدولة",
+    "short_name": "مكتب العوابدي",
+    "description": "نظام إدارة القضايا والموكلين والجلسات - مكتب الدكتور محمد العوابدي",
+    "start_url": "./index.html",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#14100a",
+    "theme_color": "#14100a",
+    "orientation": "any",
+    "icons": [
+        { "src": "assets/icon-128.png", "sizes": "128x128", "type": "image/png" },
+        { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+        { "src": "assets/icon-256.png", "sizes": "256x256", "type": "image/png" },
+        { "src": "assets/icon-384.png", "sizes": "384x384", "type": "image/png" },
+        { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ],
+    "categories": ["business", "productivity", "utilities"],
+    "lang": "ar",
+    "dir": "rtl"
+}
