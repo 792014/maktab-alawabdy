@@ -1517,6 +1517,31 @@
     </style>
 </head>
 <body>
+    <!-- شاشة الافتتاح (Splash Screen) -->
+    <div id="app-splash" style="position:fixed;inset:0;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(circle at 50% 30%, #2a2113 0%, #14100a 70%, #0b0805 100%);font-family:'Cairo','Segoe UI',Tahoma,sans-serif;">
+        <div style="width:150px;height:150px;border-radius:50%;padding:5px;background:linear-gradient(135deg,#d4af37,#b8860b,#d4af37);box-shadow:0 0 40px rgba(212,175,55,.35),0 0 0 1px rgba(212,175,55,.4);animation:splashPulse 2.2s ease-in-out infinite;">
+            <img src="assets/icon-512.png" alt="مكتب الدكتور محمد العوابدي" style="width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;border:3px solid #14100a;">
+        </div>
+        <div style="margin-top:24px;color:#f3e6c4;font-size:20px;font-weight:700;">مكتب الدكتور محمد العوابدي</div>
+        <div style="margin-top:6px;color:#d4af37;font-size:13px;">المحامي بالاستئناف العالي ومجلس الدولة</div>
+        <div style="margin-top:30px;width:170px;height:3px;background:rgba(212,175,55,.15);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:40%;background:linear-gradient(90deg,transparent,#d4af37,transparent);animation:splashLoading 1.3s ease-in-out infinite;"></div>
+        </div>
+        <div style="margin-top:14px;color:#8a7a52;font-size:11px;">جاري تحميل النظام...</div>
+    </div>
+    <style>
+        @keyframes splashPulse { 0%,100%{box-shadow:0 0 30px rgba(212,175,55,.25),0 0 0 1px rgba(212,175,55,.35);} 50%{box-shadow:0 0 55px rgba(212,175,55,.55),0 0 0 1px rgba(212,175,55,.6);} }
+        @keyframes splashLoading { 0%{transform:translateX(-250%);} 100%{transform:translateX(350%);} }
+        #app-splash.hide { opacity:0; visibility:hidden; transition:opacity .5s ease; }
+    </style>
+    <script>
+        // إخفاء شاشة الافتتاح بعد 5 ثوانٍ من فتح التطبيق
+        setTimeout(function () {
+            const splash = document.getElementById('app-splash');
+            if (splash) splash.classList.add('hide');
+        }, 5000);
+    </script>
+
     <!-- Gradient Background -->
     <div class="gradient-bg"></div>
     
@@ -1548,9 +1573,12 @@
         <!-- Header -->
         <div class="header">
             <div class="header-content">
-                <div class="header-text">
-                    <h1><i class="fas fa-balance-scale"></i> مكتب الدكتور محمد العوابدي</h1>
-                    <p>المحامي بالاستئناف العالي ومجلس الدولة — نظام إدارة القضايا والموكلين</p>
+                <div class="header-text" style="display:flex;align-items:center;gap:16px;">
+                    <img src="assets/icon-192.png" alt="مكتب الدكتور محمد العوابدي" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid rgba(212,175,55,.6);flex-shrink:0;">
+                    <div>
+                        <h1 style="margin:0;"><i class="fas fa-balance-scale"></i> مكتب الدكتور محمد العوابدي</h1>
+                        <p style="margin:4px 0 0;">المحامي بالاستئناف العالي ومجلس الدولة — نظام إدارة القضايا والموكلين</p>
+                    </div>
                 </div>
                 <div style="display: flex; gap: 20px; align-items: center;">
                     <div class="install-button-container">
@@ -1749,36 +1777,6 @@
                     </div>
                 </div>
                 
-                <!-- PWA Installation Instructions -->
-                <div class="pwa-instructions">
-                    <h4><i class="fas fa-mobile-alt"></i> كيفية تحميل التطبيق على جهازك</h4>
-                    <div style="margin-top: 15px;">
-                        <p><strong>للأجهزة المحمولة (أندرويد/آيفون):</strong></p>
-                        <ol>
-                            <li>افتح التطبيق في متصفح Chrome أو Safari</li>
-                            <li>اضغط على زر القائمة (النقاط الثلاث أو مشاركة)</li>
-                            <li>اختر "إضافة إلى الشاشة الرئيسية" أو "تثبيت التطبيق"</li>
-                            <li>اضغط على "إضافة" أو "تثبيت"</li>
-                        </ol>
-                        
-                        <p style="margin-top: 15px;"><strong>للأجهزة المكتبية (كمبيوتر):</strong></p>
-                        <ol>
-                            <li>افتح التطبيق في متصفح Chrome أو Edge</li>
-                            <li>انظر في شريط العنوان لرؤية أيقونة التثبيت</li>
-                            <li>اضغط على أيقونة التثبيت أو اضغط على زر "تثبيت التطبيق"</li>
-                            <li>اتبع التعليمات لتثبيت التطبيق</li>
-                        </ol>
-                        
-                        <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
-                            <button class="btn btn-whatsapp" onclick="showInstallInstructions()">
-                                <i class="fas fa-question-circle"></i> عرض تعليمات مفصلة
-                            </button>
-                            <button class="btn btn-info" onclick="checkPWAStatus()">
-                                <i class="fas fa-check-circle"></i> التحقق من حالة التطبيق
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <!-- Cases Tab -->
