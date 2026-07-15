@@ -6360,70 +6360,15 @@
         // تسجيل Service Worker
         function registerServiceWorker() {
             if ('serviceWorker' in navigator) {
-                const swCode = `
-                    // Service Worker للتخزين المؤقت
-                    const CACHE_NAME = 'law-office-pwa-v1.0';
-                    const urlsToCache = [
-                        './',
-                        './index.html',
-                        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-                        'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css'
-                    ];
-                    
-                    self.addEventListener('install', event => {
-                        console.log('[Service Worker] التثبيت');
-                        event.waitUntil(
-                            caches.open(CACHE_NAME)
-                                .then(cache => {
-                                    console.log('[Service Worker] التخزين المؤقت');
-                                    return cache.addAll(urlsToCache);
-                                })
-                        );
+                // تسجيل ملف Service Worker حقيقي وثابت (sw.js) بدل النسخة المؤقتة
+                // هذا ضروري لكي يعتبر المتصفح التطبيق قابلاً للتثبيت (PWA) بشكل موثوق
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker مسجل بنجاح:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('فشل تسجيل Service Worker:', error);
                     });
-                    
-                    self.addEventListener('fetch', event => {
-                        event.respondWith(
-                            caches.match(event.request)
-                                .then(response => {
-                                    if (response) {
-                                        return response;
-                                    }
-                                    return fetch(event.request);
-                                })
-                        );
-                    });
-                    
-                    self.addEventListener('activate', event => {
-                        const cacheWhitelist = [CACHE_NAME];
-                        event.waitUntil(
-                            caches.keys().then(cacheNames => {
-                                return Promise.all(
-                                    cacheNames.map(cacheName => {
-                                        if (cacheWhitelist.indexOf(cacheName) === -1) {
-                                            return caches.delete(cacheName);
-                                        }
-                                    })
-                                );
-                            })
-                        );
-                    });
-                `;
-                
-                // إنشاء Service Worker ديناميكيًا
-                try {
-                    const blob = new Blob([swCode], {type: 'application/javascript'});
-                    const swURL = URL.createObjectURL(blob);
-                    
-                    navigator.serviceWorker.register(swURL)
-                        .then(registration => {
-                            console.log('Service Worker مسجل بنجاح:', registration.scope);
-                        })
-                        .catch(error => {
-                            console.log('فشل تسجيل Service Worker:', error);
-                        });
-                } catch (error) {
-                    console.log('خطأ في إنشاء Service Worker:', error);
-                }
             }
         }
         
