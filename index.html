@@ -6,7 +6,7 @@
     <title>مكتب الدكتور محمد العوابدي المحامي بالاستئناف العالي ومجلس الدولة</title>
     
     <!-- معلومات PWA -->
-    <link rel="manifest" id="app-manifest">
+    <link rel="manifest" id="app-manifest" href="manifest.json">
     <meta name="theme-color" content="#14100a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -6658,8 +6658,9 @@
         window.addEventListener('load', () => {
             console.log('تهيئة PWA...');
             
-            // إنشاء Manifest
-            createDynamicManifest();
+            // ملف Manifest ثابت وموثوق (manifest.json) مربوط مباشرة في رأس الصفحة
+            // تم تعطيل الإصدار الديناميكي (Blob) لأنه غير موثوق لالتقاط الأيقونة عند أول تثبيت
+            // createDynamicManifest();
             
             // تسجيل Service Worker
             registerServiceWorker();
