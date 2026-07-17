@@ -1,8 +1,6 @@
 // Service Worker - مكتب الدكتور محمد العوابدي
-const CACHE_NAME = 'maktab-alawabdy-pwa-v1.1';
-const urlsToCache = [
-    './',
-    './index.html',
+const CACHE_NAME = 'maktab-alawabdy-pwa-v1.2';
+const STATIC_ASSETS = [
     './manifest.json',
     './assets/icon-128.png',
     './assets/icon-192.png',
@@ -14,40 +12,42 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-    console.log('[Service Worker] التثبيت');
     self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('[Service Worker] التخزين المؤقت');
-                return cache.addAll(urlsToCache);
-            })
-    );
-});
-
-self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request);
-            })
+        caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS))
     );
 });
 
 self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
     event.waitUntil(
         caches.keys().then(cacheNames => {
             return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
+                cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name))
             );
         }).then(() => self.clients.claim())
+    );
+});
+
+self.addEventListener('fetch', event => {
+    const request = event.request;
+
+    // صفحة HTML الرئيسية: دائماً نحاول جلب أحدث نسخة من الإنترنت أولاً (Network First)
+    // حتى لا يظل التطبيق عالقاً على نسخة قديمة مخزّنة مؤقتاً
+    if (request.mode === 'navigate' || request.destination === 'document') {
+        event.respondWith(
+            fetch(request)
+                .then(response => {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+                    return response;
+                })
+                .catch(() => caches.match(request))
+        );
+        return;
+    }
+
+    // باقي الملفات (أيقونات، خطوط...): من الكاش أولاً وإلا من الإنترنت (Cache First)
+    event.respondWith(
+        caches.match(request).then(response => response || fetch(request))
     );
 });
