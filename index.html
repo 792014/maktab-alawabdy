@@ -5117,6 +5117,14 @@
                     status: 'مستقبلية'
                 });
                 
+                // تمييز الحكم كمُعاد للرول حتى يختفي من قائمة الأحكام
+                const judgmentIndex = judgments.findIndex(j => j.id === judgmentId);
+                if (judgmentIndex !== -1) {
+                    judgments[judgmentIndex].returnedToRoll = true;
+                    judgments[judgmentIndex].returnedToRollAt = new Date().toISOString();
+                }
+                syncSave('judgments', judgments);
+                
                 syncSave('cases', cases);
                 showToast('تم إعادة القضية للرول بنجاح!');
                 
@@ -5658,7 +5666,9 @@
             const judgmentsBody = document.getElementById('judgments-body');
             judgmentsBody.innerHTML = '';
             
-            judgments.forEach(j => {
+            const visibleJudgments = judgments.filter(j => !j.returnedToRoll);
+            
+            visibleJudgments.forEach(j => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${j.caseNumber}</td>
@@ -5682,7 +5692,7 @@
             });
             
             // إذا لم توجد أحكام
-            if (judgments.length === 0) {
+            if (visibleJudgments.length === 0) {
                 judgmentsBody.innerHTML = `
                     <tr>
                         <td colspan="7" class="empty-state">
