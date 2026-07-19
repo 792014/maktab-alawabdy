@@ -2331,14 +2331,15 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="print-case-status">حالة القضية</label>
+                        <label for="print-case-status">تصنيف القضايا</label>
                         <select id="print-case-status" class="form-control">
-                            <option value="">جميع الحالات</option>
-                            <option value="قيد النظر">قيد النظر</option>
-                            <option value="منظورة">منظورة</option>
-                            <option value="منتهية">منتهية</option>
+                            <option value="">جميع القضايا (كل التصنيفات)</option>
+                            <option value="متداولة">قضايا متداولة</option>
                             <option value="محجوزة للحكم">محجوزة للحكم</option>
+                            <option value="موقوفة">موقوفة</option>
                             <option value="مشطوبة">مشطوبة</option>
+                            <option value="محكوم فيها">محكوم فيها</option>
+                            <option value="الأرشيف">الأرشيف</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -2403,6 +2404,7 @@
                                 <th>المدعي</th>
                                 <th>المدعى عليه</th>
                                 <th>نوع المحكمة</th>
+                                <th>التصنيف</th>
                                 <th>تاريخ الجلسة القادمة</th>
                                 <th>ملاحظات للطباعة</th>
                             </tr>
@@ -2822,6 +2824,55 @@
                     <i class="fas fa-fast-forward"></i> تعجيل الدعوى
                 </button>
                 <button id="cancel-expedite-btn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Restoring an Archived Case -->
+    <div id="restore-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-undo"></i> استعادة قضية من الأرشيف</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div style="padding: 20px 0;">
+                <input type="hidden" id="restore-case-id" value="">
+                <h4 id="restore-case-title" style="color: var(--primary-color); margin-bottom: 20px;"></h4>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="restore-reason">سبب الاستعادة</label>
+                        <select id="restore-reason" class="form-control">
+                            <option value="">اختر سبب الاستعادة</option>
+                            <option value="إعادة فتح القضية">إعادة فتح القضية</option>
+                            <option value="خطأ في الأرشفة">خطأ في الأرشفة</option>
+                            <option value="ظهور مستجدات في القضية">ظهور مستجدات في القضية</option>
+                            <option value="طلب من الموكل">طلب من الموكل</option>
+                            <option value="أخرى">أخرى</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="restore-session-date">تاريخ الجلسة</label>
+                        <input type="date" id="restore-session-date" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="restore-notes">ملاحظات إضافية (اختياري)</label>
+                        <textarea id="restore-notes" class="form-control" rows="3" placeholder="ملاحظات إضافية عن الاستعادة"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row" style="margin-top: 20px;">
+                <button id="confirm-restore-btn" class="btn btn-primary">
+                    <i class="fas fa-undo"></i> استعادة
+                </button>
+                <button id="cancel-restore-btn" class="btn btn-secondary">
                     <i class="fas fa-times"></i> إلغاء
                 </button>
             </div>
@@ -4391,6 +4442,8 @@
                 });
             }
             
+            addCaseActionLog(caseIndex, { type: 'حجز الدعوى للحكم', reason: 'حجز القضية للحكم', notes: reserveNotes, date: reserveDate, status: 'منتهية' });
+            
             syncSave('cases', cases);
             
             showToast('تم حجز القضية للحكم بنجاح!');
@@ -4430,6 +4483,8 @@
                 });
             }
             
+            addCaseActionLog(caseIndex, { type: 'شطب الدعوى', reason: cancelReason, notes: cancelDetails, date: cancelDate, status: 'منتهية' });
+            
             syncSave('cases', cases);
             
             showToast('تم شطب القضية بنجاح!');
@@ -4457,6 +4512,15 @@
             cases[caseIndex].suspendReason = suspendReason;
             cases[caseIndex].suspendNotes = suspendNotes;
             cases[caseIndex].suspendedAt = new Date().toISOString();
+            
+            // تحديث حالة الجلسات السابقة لتصبح منتهية
+            if (cases[caseIndex].sessions) {
+                cases[caseIndex].sessions.forEach(session => {
+                    if (session.status === 'مستقبلية') session.status = 'منتهية';
+                });
+            }
+            
+            addCaseActionLog(caseIndex, { type: `وقف الدعوى (${suspensionType})`, reason: suspendReason, notes: suspendNotes, date: suspendDate, status: 'منتهية' });
             
             syncSave('cases', cases);
             
@@ -4552,6 +4616,20 @@
             });
         };
         
+        // إضافة إجراء إلى سجل جلسات القضية (يُستخدم لتوثيق كل الإجراءات التي تمر بها القضية منذ تسجيلها)
+        function addCaseActionLog(caseIndex, { type, reason = '', notes = '', date = null, status = 'منتهية' }) {
+            if (!cases[caseIndex].sessions) cases[caseIndex].sessions = [];
+            cases[caseIndex].sessions.push({
+                id: cases[caseIndex].sessions.length + 1,
+                date: date || new Date().toISOString().split('T')[0],
+                type: type,
+                reason: reason,
+                notes: notes,
+                status: status,
+                createdAt: new Date().toISOString()
+            });
+        }
+        
         // نقل قضية إلى الأرشيف (من أي قائمة: القضايا، الأحكام، المشطوبة، الموقوفة)
         window.archiveCase = function(caseId) {
             if (!confirm('هل تريد نقل هذه القضية إلى الأرشيف؟')) return;
@@ -4563,6 +4641,7 @@
             
             cases[caseIndex].archived = true;
             cases[caseIndex].archivedAt = new Date().toISOString();
+            addCaseActionLog(caseIndex, { type: 'نقل إلى الأرشيف', reason: 'أرشفة القضية', status: 'منتهية' });
             
             syncSave('cases', cases);
             showToast('تم نقل القضية إلى الأرشيف بنجاح!');
@@ -4585,26 +4664,93 @@
             window.archiveCase(judgment.caseId);
         };
         
-        // استعادة قضية من الأرشيف
-        window.unarchiveCase = function(caseId) {
-            if (!confirm('هل تريد استعادة هذه القضية من الأرشيف؟')) return;
-            const caseIndex = cases.findIndex(c => c.id === caseId);
-            if (caseIndex === -1) return;
+        // استعادة قضية من الأرشيف (بعد اختيار سبب الاستعادة وتاريخ الجلسة الجديدة)
+        window.restoreArchivedCase = function(caseId) {
+            const caseData = cases.find(c => c.id === caseId);
+            if (!caseData) return;
             
-            cases[caseIndex].archived = false;
-            delete cases[caseIndex].archivedAt;
+            const modal = document.getElementById('restore-modal');
             
-            syncSave('cases', cases);
-            showToast('تم استعادة القضية من الأرشيف بنجاح!');
+            let plaintiffName = caseData.plaintiffName || '';
+            let defendantName = caseData.defendantName || '';
+            if (caseData.plaintiffId) {
+                const plaintiffClient = clients.find(client => client.id === caseData.plaintiffId);
+                if (plaintiffClient) plaintiffName = plaintiffClient.name;
+            }
+            if (caseData.defendantId) {
+                const defendantClient = clients.find(client => client.id === caseData.defendantId);
+                if (defendantClient) defendantName = defendantClient.name;
+            }
             
-            loadCasesTable();
-            loadReservedCasesTable();
-            loadCancelledCasesTable();
-            loadSuspendedCasesTable();
-            loadJudgmentsTable();
-            loadArchivedCasesTable();
-            updateDashboard();
-            updateSearchResults();
+            document.getElementById('restore-case-title').textContent = `استعادة القضية: ${caseData.caseNumber}/${caseData.year} - ${plaintiffName} ضد ${defendantName}`;
+            document.getElementById('restore-case-id').value = caseId;
+            document.getElementById('restore-reason').value = '';
+            document.getElementById('restore-session-date').value = '';
+            document.getElementById('restore-notes').value = '';
+            
+            modal.classList.add('active');
+            
+            modal.querySelector('.close-modal').onclick = () => modal.classList.remove('active');
+            document.getElementById('cancel-restore-btn').onclick = () => modal.classList.remove('active');
+            
+            document.getElementById('confirm-restore-btn').onclick = function() {
+                const restoreReason = document.getElementById('restore-reason').value;
+                const sessionDate = document.getElementById('restore-session-date').value;
+                const restoreNotes = document.getElementById('restore-notes').value;
+                
+                if (!restoreReason) {
+                    showToast('يرجى اختيار سبب الاستعادة', 'warning');
+                    return;
+                }
+                if (!sessionDate) {
+                    showToast('يرجى اختيار تاريخ الجلسة', 'warning');
+                    return;
+                }
+                
+                const caseIndex = cases.findIndex(c => c.id === caseId);
+                if (caseIndex === -1) return;
+                
+                // إعادة القضية إلى القضايا المتداولة
+                cases[caseIndex].archived = false;
+                delete cases[caseIndex].archivedAt;
+                cases[caseIndex].status = 'قيد النظر';
+                
+                // تحديث حالة الجلسات السابقة لتصبح منتهية
+                if (cases[caseIndex].sessions) {
+                    cases[caseIndex].sessions.forEach(session => {
+                        if (session.status === 'مستقبلية') session.status = 'منتهية';
+                    });
+                }
+                
+                // تسجيل إجراء الاستعادة وإضافة الجلسة الجديدة في سجل الجلسات
+                addCaseActionLog(caseIndex, {
+                    type: 'استعادة من الأرشيف',
+                    reason: restoreReason,
+                    notes: restoreNotes,
+                    date: sessionDate,
+                    status: 'مستقبلية'
+                });
+                
+                syncSave('cases', cases);
+                showToast('تم استعادة القضية بنجاح وإدراجها في القضايا المتداولة!');
+                
+                loadCasesTable();
+                loadReservedCasesTable();
+                loadCancelledCasesTable();
+                loadSuspendedCasesTable();
+                loadJudgmentsTable();
+                loadArchivedCasesTable();
+                updateDashboard();
+                updateSearchResults();
+                
+                modal.classList.remove('active');
+            };
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
         };
         
         // تعديل قضية
@@ -4790,6 +4936,7 @@
                     cases[caseIndex].judgmentSummary = judgmentSummary;
                     cases[caseIndex].judgmentNotes = judgmentNotes;
                     cases[caseIndex].judgedAt = new Date().toISOString();
+                    addCaseActionLog(caseIndex, { type: `صدور حكم (${judgmentType})`, reason: judgmentSummary, notes: judgmentNotes, date: judgmentDate, status: 'منتهية' });
                 }
                 
                 // تسجيل الحكم
@@ -4992,7 +5139,7 @@
                     <td>${c.archivedAt ? formatDate(c.archivedAt.split('T')[0]) : 'غير محدد'}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn-action btn-info" onclick="unarchiveCase(${c.id})" title="استعادة من الأرشيف"><i class="fas fa-undo"></i> استعادة</button>
+                            <button class="btn-action btn-info" onclick="restoreArchivedCase(${c.id})" title="استعادة من الأرشيف"><i class="fas fa-undo"></i> استعادة</button>
                             <button class="btn-action btn-delete" onclick="deleteCase(${c.id})"><i class="fas fa-trash"></i> حذف نهائي</button>
                         </div>
                     </td>
@@ -6039,8 +6186,20 @@
         // تصفية القضايا للطباعة
         document.getElementById('filter-cases-btn').addEventListener('click', filterPrintCases);
         
+        // تحديد تصنيف القضية (متداولة / محجوزة للحكم / موقوفة / مشطوبة / محكوم فيها / الأرشيف)
+        function getCaseCategory(c) {
+            if (c.archived) return 'الأرشيف';
+            if (c.status === 'محجوزة للحكم') return 'محجوزة للحكم';
+            if (c.status === 'مشطوبة') return 'مشطوبة';
+            if (c.status === 'موقوفة') return 'موقوفة';
+            if (c.status === 'منتهية') return 'محكوم فيها';
+            return 'متداولة';
+        }
+        
+        const CASE_CATEGORY_ORDER = ['متداولة', 'محجوزة للحكم', 'موقوفة', 'مشطوبة', 'محكوم فيها', 'الأرشيف'];
+        
         function filterPrintCases() {
-            const selectedStatus = document.getElementById('print-case-status').value;
+            const selectedCategory = document.getElementById('print-case-status').value;
             const selectedClient = document.getElementById('print-client-select').value;
             const selectedCourt = document.getElementById('print-court-type').value;
             const selectedCaseType = document.getElementById('print-case-type').value;
@@ -6048,20 +6207,28 @@
             const printCasesBody = document.getElementById('print-cases-body');
             printCasesBody.innerHTML = '';
             
-            // تصفية القضايا
-            const filteredCases = cases.filter(c => {
-                if (c.archived) return false;
-                const matchesStatus = !selectedStatus || c.status === selectedStatus;
+            // تصفية القضايا حسب التصنيف (وليس فقط الحالة الخام)، مع تضمين الأرشيف عند اختياره أو عند اختيار "جميع القضايا"
+            let filteredCases = cases.filter(c => {
+                const category = getCaseCategory(c);
+                const matchesCategory = !selectedCategory || category === selectedCategory;
                 const matchesClient = !selectedClient || 
                     c.plaintiffId == selectedClient || 
                     c.defendantId == selectedClient;
                 const matchesCourt = !selectedCourt || c.courtType === selectedCourt;
                 const matchesCaseType = !selectedCaseType || c.caseType === selectedCaseType;
                 
-                return matchesStatus && matchesClient && matchesCourt && matchesCaseType;
+                return matchesCategory && matchesClient && matchesCourt && matchesCaseType;
             });
             
+            // عند عرض "جميع القضايا"، نرتبها مجمّعة حسب التصنيف حتى تظهر كل مجموعة مع بعضها في الجدول
+            if (!selectedCategory) {
+                filteredCases = [...filteredCases].sort((a, b) => {
+                    return CASE_CATEGORY_ORDER.indexOf(getCaseCategory(a)) - CASE_CATEGORY_ORDER.indexOf(getCaseCategory(b));
+                });
+            }
+            
             // عرض القضايا المصفاة
+            let lastCategory = null;
             filteredCases.forEach(c => {
                 // الحصول على اسم المدعي والمدعى عليه
                 let plaintiffName = c.plaintiffName || '';
@@ -6086,6 +6253,16 @@
                     }
                 }
                 
+                const category = getCaseCategory(c);
+                
+                // عند عرض جميع القضايا مجمّعة، نضيف صف عنوان فرعي عند بداية كل تصنيف جديد
+                if (!selectedCategory && category !== lastCategory) {
+                    const groupRow = document.createElement('tr');
+                    groupRow.innerHTML = `<td colspan="8" style="background: rgba(212,175,55,0.15); font-weight: 700; padding: 10px;"><i class="fas fa-folder"></i> ${category} (${filteredCases.filter(fc => getCaseCategory(fc) === category).length})</td>`;
+                    printCasesBody.appendChild(groupRow);
+                    lastCategory = category;
+                }
+                
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${c.caseNumber}</td>
@@ -6093,6 +6270,7 @@
                     <td>${plaintiffName}</td>
                     <td>${defendantName}</td>
                     <td>${c.courtType || 'غير محدد'}</td>
+                    <td>${category}</td>
                     <td>${nextSessionDate}</td>
                     <td><input type="text" class="form-control case-note" data-case-id="${c.id}" placeholder="اكتب ملاحظة هنا"></td>
                 `;
@@ -6103,7 +6281,7 @@
             if (filteredCases.length === 0) {
                 printCasesBody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="empty-state">
+                        <td colspan="8" class="empty-state">
                             <i class="fas fa-search"></i>
                             <h3>لا توجد قضايا مطابقة للبحث</h3>
                             <p>حاول تغيير معايير البحث</p>
@@ -6164,6 +6342,7 @@
                                 <th>المدعي</th>
                                 <th>المدعى عليه</th>
                                 <th>نوع المحكمة</th>
+                                <th>التصنيف</th>
                                 <th>تاريخ الجلسة القادمة</th>
                                 <th>ملاحظات</th>
                             </tr>
@@ -6173,6 +6352,17 @@
             
             // إضافة بيانات الجدول
             rows.forEach(row => {
+                // تجاهل صفوف عناوين المجموعات (تصنيفات "جميع القضايا")
+                if (row.querySelector('td[colspan]')) {
+                    const groupTitle = row.querySelector('td[colspan]').textContent;
+                    printContent += `
+                        <tr>
+                            <td colspan="8" style="background:#f0e6c8; font-weight:bold; padding:8px;">${groupTitle}</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
                 const cells = row.querySelectorAll('td');
                 const caseNoteInput = row.querySelector('.case-note');
                 const caseNote = caseNoteInput ? caseNoteInput.value : '';
@@ -6185,6 +6375,7 @@
                         <td>${cells[3].textContent}</td>
                         <td>${cells[4].textContent}</td>
                         <td>${cells[5].textContent}</td>
+                        <td>${cells[6].textContent}</td>
                         <td>${caseNote}</td>
                     </tr>
                 `;
@@ -6224,6 +6415,12 @@
             }
             
             rows.forEach((row, index) => {
+                // تجاهل صفوف عناوين المجموعات
+                if (row.querySelector('td[colspan]')) {
+                    message += `\n📁 ${row.querySelector('td[colspan]').textContent}\n`;
+                    return;
+                }
+                
                 const cells = row.querySelectorAll('td');
                 const caseNoteInput = row.querySelector('.case-note');
                 const caseNote = caseNoteInput ? caseNoteInput.value : '';
@@ -6232,7 +6429,8 @@
                 message += `   المدعي: ${cells[2].textContent}\n`;
                 message += `   المدعى عليه: ${cells[3].textContent}\n`;
                 message += `   المحكمة: ${cells[4].textContent}\n`;
-                message += `   الجلسة القادمة: ${cells[5].textContent}\n`;
+                message += `   التصنيف: ${cells[5].textContent}\n`;
+                message += `   الجلسة القادمة: ${cells[6].textContent}\n`;
                 if (caseNote) {
                     message += `   ملاحظات: ${caseNote}\n`;
                 }
@@ -6309,6 +6507,7 @@
                                 <th>المدعي</th>
                                 <th>المدعى عليه</th>
                                 <th>نوع المحكمة</th>
+                                <th>التصنيف</th>
                                 <th>تاريخ الجلسة القادمة</th>
                                 <th>ملاحظات</th>
                             </tr>
@@ -6317,6 +6516,16 @@
             `;
             
             rows.forEach(row => {
+                // صف عنوان مجموعة (تصنيف)
+                if (row.querySelector('td[colspan]')) {
+                    htmlContent += `
+                        <tr>
+                            <td colspan="8" style="background:#f0e6c8; font-weight:bold;">${row.querySelector('td[colspan]').textContent}</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
                 const cells = row.querySelectorAll('td');
                 const caseNoteInput = row.querySelector('.case-note');
                 const caseNote = caseNoteInput ? caseNoteInput.value : '';
@@ -6329,6 +6538,7 @@
                         <td>${cells[3].textContent}</td>
                         <td>${cells[4].textContent}</td>
                         <td>${cells[5].textContent}</td>
+                        <td>${cells[6].textContent}</td>
                         <td>${caseNote}</td>
                     </tr>
                 `;
