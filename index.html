@@ -1138,6 +1138,16 @@
             color: #b78a00;
         }
         
+        .badge-danger {
+            background-color: rgba(229, 57, 53, 0.2);
+            color: #e53935;
+        }
+        
+        .badge-info {
+            background-color: rgba(33, 150, 243, 0.2);
+            color: #2196f3;
+        }
+        
         /* Court Field */
         .court-field {
             display: flex;
@@ -1777,6 +1787,28 @@
                             <h3 id="reserved-cases-count">0</h3>
                             <p>قضايا محجوزة للحكم</p>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- تنبيهات مواعيد الطعن (استئناف / نقض) -->
+                <div id="appeal-alerts-section" style="display: none; margin-top: 20px;">
+                    <h3 class="section-title"><i class="fas fa-exclamation-triangle" style="color:#e53935;"></i> تنبيهات مواعيد الطعن</h3>
+                    <div class="table-container">
+                        <table id="appeal-alerts-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم الدعوى</th>
+                                    <th>سنة الدعوى</th>
+                                    <th>نوع الطعن</th>
+                                    <th>تاريخ الحكم</th>
+                                    <th>آخر موعد للطعن</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appeal-alerts-body">
+                                <!-- سيتم ملؤها بالبيانات -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 
@@ -2879,6 +2911,55 @@
         </div>
     </div>
 
+    <!-- Modal for Returning a Judged Case to the Roll -->
+    <div id="return-to-roll-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-undo-alt"></i> إعادة القضية للرول</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div style="padding: 20px 0;">
+                <input type="hidden" id="return-roll-judgment-id" value="">
+                <h4 id="return-roll-case-title" style="color: var(--primary-color); margin-bottom: 20px;"></h4>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="return-roll-reason">سبب الإعادة</label>
+                        <select id="return-roll-reason" class="form-control">
+                            <option value="">اختر سبب الإعادة</option>
+                            <option value="استئناف الحكم">استئناف الحكم</option>
+                            <option value="طعن بالنقض">طعن بالنقض</option>
+                            <option value="إعادة نظر">إعادة نظر</option>
+                            <option value="تصحيح إجراءات">تصحيح إجراءات</option>
+                            <option value="أخرى">أخرى</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="return-roll-session-date">تاريخ الجلسة</label>
+                        <input type="date" id="return-roll-session-date" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="return-roll-notes">ملاحظات إضافية (اختياري)</label>
+                        <textarea id="return-roll-notes" class="form-control" rows="3" placeholder="ملاحظات إضافية عن إعادة القضية للرول"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row" style="margin-top: 20px;">
+                <button id="confirm-return-roll-btn" class="btn btn-primary">
+                    <i class="fas fa-undo-alt"></i> إعادة للرول
+                </button>
+                <button id="cancel-return-roll-btn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Judgment -->
     <div id="judgment-modal" class="modal">
         <div class="modal-content">
@@ -2893,17 +2974,33 @@
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="judgment-type">نوع الحكم</label>
-                        <select id="judgment-type" class="form-control">
-                            <option value="">اختر نوع الحكم</option>
-                            <option value="قبول الدعوى">قبول الدعوى</option>
-                            <option value="رفض الدعوى">رفض الدعوى</option>
-                            <option value="البراءة">البراءة</option>
-                            <option value="الإدانة">الإدانة</option>
-                            <option value="تعويض">تعويض</option>
-                            <option value="حكم غيابي">حكم غيابي</option>
-                            <option value="حكم حضوري">حكم حضوري</option>
-                        </select>
+                        <label>مدة الطعن</label>
+                        <div style="display:flex; gap:12px;">
+                            <div class="postpone-option appeal-type-option active" data-appeal-type="استئناف" style="flex:1;">
+                                <i class="fas fa-arrow-up" style="color: #d4af37;"></i>
+                                <h4>استئناف</h4>
+                                <p>40 أو 15 يوم</p>
+                            </div>
+                            <div class="postpone-option appeal-type-option" data-appeal-type="نقض" style="flex:1;">
+                                <i class="fas fa-gavel" style="color: #d4af37;"></i>
+                                <h4>نقض</h4>
+                                <p>60 يوم</p>
+                            </div>
+                        </div>
+                        
+                        <div id="appeal-duration-choice" style="margin-top: 12px; display:flex; gap:12px;">
+                            <div class="postpone-option appeal-duration-option active" data-appeal-duration="40" style="flex:1;">
+                                <h4>40 يوم</h4>
+                            </div>
+                            <div class="postpone-option appeal-duration-option" data-appeal-duration="15" style="flex:1;">
+                                <h4>15 يوم</h4>
+                            </div>
+                        </div>
+                        <p id="cassation-duration-note" style="display:none; color:#d4af37; margin-top:10px;">مدة الطعن بالنقض: 60 يوماً من اليوم التالي للحكم</p>
+                        
+                        <input type="hidden" id="selected-appeal-type" value="استئناف">
+                        <input type="hidden" id="selected-appeal-duration" value="40">
+                        <p id="appeal-deadline-preview" style="margin-top:12px; color:#f3e6c4; font-weight:600;"></p>
                     </div>
                     <div class="form-group">
                         <label for="judgment-date">تاريخ الحكم</label>
@@ -3255,6 +3352,93 @@
             }, 3000);
         }
         
+        // فحص مواعيد الطعن (استئناف/نقض) القريبة من الانتهاء أو المنتهية، وعرضها في لوحة تحكم + تنبيه لحظي للحالات العاجلة
+        function checkAppealDeadlines() {
+            const alertsSection = document.getElementById('appeal-alerts-section');
+            const alertsBody = document.getElementById('appeal-alerts-body');
+            if (!alertsSection || !alertsBody) return;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            let changed = false;
+            const alerts = [];
+            
+            cases.forEach((c, idx) => {
+                if (!c.appealDeadline || c.archived) return;
+                
+                const deadline = new Date(c.appealDeadline + 'T00:00:00');
+                const diffDays = Math.round((deadline - today) / (1000 * 60 * 60 * 24));
+                
+                // لا نعرض تنبيهات لمواعيد بعيدة جداً (أكثر من 10 أيام) حتى لا تمتلئ اللوحة
+                if (diffDays > 10) return;
+                
+                if (!c.appealNotified) { c.appealNotified = {}; changed = true; }
+                
+                let statusLabel, statusClass;
+                if (diffDays < 0) {
+                    statusLabel = `متأخر ${Math.abs(diffDays)} يوم`;
+                    statusClass = 'badge-danger';
+                } else if (diffDays === 0) {
+                    statusLabel = 'اليوم آخر موعد';
+                    statusClass = 'badge-danger';
+                } else {
+                    statusLabel = `باقي ${diffDays} يوم`;
+                    statusClass = diffDays <= 3 ? 'badge-warning' : 'badge-info';
+                }
+                
+                alerts.push({ c, diffDays, statusLabel, statusClass });
+                
+                // تنبيه لحظي مرة واحدة فقط لكل عتبة (عاجل: اليوم أو متأخر أو خلال 3 أيام)
+                let key = null, message = null, toastType = 'warning';
+                if (diffDays < 0 && !c.appealNotified['overdue']) {
+                    key = 'overdue';
+                    message = `⚠️ انتهى ميعاد ${c.appealType || 'الطعن'} للقضية ${c.caseNumber}/${c.year} منذ ${Math.abs(diffDays)} يوم!`;
+                    toastType = 'error';
+                } else if (diffDays === 0 && !c.appealNotified['today']) {
+                    key = 'today';
+                    message = `⏰ اليوم هو آخر موعد لـ${c.appealType || 'الطعن'} في القضية ${c.caseNumber}/${c.year}`;
+                    toastType = 'error';
+                } else if (diffDays > 0 && diffDays <= 3 && !c.appealNotified['3days']) {
+                    key = '3days';
+                    message = `⏰ باقي ${diffDays} أيام على ميعاد ${c.appealType || 'الطعن'} للقضية ${c.caseNumber}/${c.year}`;
+                    toastType = 'warning';
+                }
+                
+                if (key) {
+                    showToast(message, toastType);
+                    c.appealNotified[key] = true;
+                    changed = true;
+                }
+            });
+            
+            // ترتيب حسب الأكثر إلحاحاً
+            alerts.sort((a, b) => a.diffDays - b.diffDays);
+            
+            if (alerts.length > 0) {
+                alertsSection.style.display = 'block';
+                alertsBody.innerHTML = '';
+                alerts.forEach(({ c, statusLabel, statusClass }) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${c.caseNumber}</td>
+                        <td>${c.year}</td>
+                        <td>${c.appealType || ''}</td>
+                        <td>${c.judgmentDate ? formatDate(c.judgmentDate) : '-'}</td>
+                        <td>${formatDate(c.appealDeadline)}</td>
+                        <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                    `;
+                    alertsBody.appendChild(row);
+                });
+            } else {
+                alertsSection.style.display = 'none';
+            }
+            
+            if (changed) {
+                syncSave('cases', cases);
+            }
+        }
+        
         // تحديث لوحة التحكم
         function updateDashboard() {
             document.getElementById('total-cases').textContent = cases.filter(c => !c.archived).length;
@@ -3347,6 +3531,8 @@
                     </tr>
                 `;
             }
+            
+            checkAppealDeadlines();
         }
         
         // الحصول على فئة الحالة
@@ -4630,6 +4816,93 @@
             });
         }
         
+        // ==================== مدة الطعن (استئناف / نقض) ====================
+        
+        // إعادة تعيين اختيار مدة الطعن في نافذة الحكم لوضع افتراضي
+        function resetAppealSelector(defaultType, defaultDuration) {
+            document.querySelectorAll('.appeal-type-option').forEach(opt => {
+                opt.classList.toggle('active', opt.getAttribute('data-appeal-type') === defaultType);
+            });
+            document.querySelectorAll('.appeal-duration-option').forEach(opt => {
+                opt.classList.toggle('active', opt.getAttribute('data-appeal-duration') === defaultDuration);
+            });
+            document.getElementById('selected-appeal-type').value = defaultType;
+            document.getElementById('selected-appeal-duration').value = defaultDuration;
+            document.getElementById('appeal-duration-choice').style.display = defaultType === 'استئناف' ? 'flex' : 'none';
+            document.getElementById('cassation-duration-note').style.display = defaultType === 'نقض' ? 'block' : 'none';
+            updateAppealDeadlinePreview();
+        }
+        
+        // ربط أحداث النقر باختيارات مدة الطعن (يُعاد استدعاؤها في كل مرة تُفتح فيها النافذة لتفادي تراكم المستمعات)
+        function setupAppealSelector() {
+            const typeOptions = document.querySelectorAll('.appeal-type-option');
+            typeOptions.forEach(option => {
+                const newOption = option.cloneNode(true);
+                option.parentNode.replaceChild(newOption, option);
+            });
+            document.querySelectorAll('.appeal-type-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.appeal-type-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    const type = this.getAttribute('data-appeal-type');
+                    document.getElementById('selected-appeal-type').value = type;
+                    document.getElementById('appeal-duration-choice').style.display = type === 'استئناف' ? 'flex' : 'none';
+                    document.getElementById('cassation-duration-note').style.display = type === 'نقض' ? 'block' : 'none';
+                    updateAppealDeadlinePreview();
+                });
+            });
+            
+            const durationOptions = document.querySelectorAll('.appeal-duration-option');
+            durationOptions.forEach(option => {
+                const newOption = option.cloneNode(true);
+                option.parentNode.replaceChild(newOption, option);
+            });
+            document.querySelectorAll('.appeal-duration-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    document.querySelectorAll('.appeal-duration-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('selected-appeal-duration').value = this.getAttribute('data-appeal-duration');
+                    updateAppealDeadlinePreview();
+                });
+            });
+            
+            const dateInput = document.getElementById('judgment-date');
+            dateInput.removeEventListener('change', updateAppealDeadlinePreview);
+            dateInput.addEventListener('change', updateAppealDeadlinePreview);
+        }
+        
+        // حساب مدة الطعن المختارة حالياً ومعلوماتها (تُحسب المدة من اليوم التالي لتاريخ الحكم)
+        function getSelectedAppealInfo(judgmentDate) {
+            const type = document.getElementById('selected-appeal-type').value || 'استئناف';
+            const durationDays = type === 'نقض' ? 60 : parseInt(document.getElementById('selected-appeal-duration').value || '40');
+            let deadline = '';
+            if (judgmentDate) {
+                const jd = new Date(judgmentDate + 'T00:00:00');
+                jd.setDate(jd.getDate() + 1 + durationDays); // تُحسب المدة من اليوم التالي للحكم
+                deadline = jd.toISOString().split('T')[0];
+            }
+            return {
+                type,
+                durationDays,
+                deadline,
+                label: `${type} (${durationDays} يوم)`
+            };
+        }
+        
+        // تحديث معاينة الموعد النهائي للطعن أثناء الاختيار
+        function updateAppealDeadlinePreview() {
+            const judgmentDate = document.getElementById('judgment-date').value;
+            const preview = document.getElementById('appeal-deadline-preview');
+            if (!preview) return;
+            if (!judgmentDate) {
+                preview.textContent = '';
+                return;
+            }
+            const info = getSelectedAppealInfo(judgmentDate);
+            preview.innerHTML = `<i class="fas fa-hourglass-half"></i> آخر موعد للطعن (${info.type}): ${formatDate(info.deadline)}`;
+        }
+        // ==================== نهاية مدة الطعن ====================
+        
         // نقل قضية إلى الأرشيف (من أي قائمة: القضايا، الأحكام، المشطوبة، الموقوفة)
         window.archiveCase = function(caseId) {
             if (!confirm('هل تريد نقل هذه القضية إلى الأرشيف؟')) return;
@@ -4733,6 +5006,88 @@
                 
                 syncSave('cases', cases);
                 showToast('تم استعادة القضية بنجاح وإدراجها في القضايا المتداولة!');
+                
+                loadCasesTable();
+                loadReservedCasesTable();
+                loadCancelledCasesTable();
+                loadSuspendedCasesTable();
+                loadJudgmentsTable();
+                loadArchivedCasesTable();
+                updateDashboard();
+                updateSearchResults();
+                
+                modal.classList.remove('active');
+            };
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        };
+        
+        // إعادة قضية محكوم فيها إلى الرول (القضايا المتداولة) بعد اختيار سبب الإعادة وتاريخ الجلسة
+        window.returnJudgmentToRoll = function(judgmentId) {
+            const judgment = judgments.find(j => j.id === judgmentId);
+            if (!judgment) {
+                showToast('تعذر العثور على بيانات الحكم', 'warning');
+                return;
+            }
+            
+            const modal = document.getElementById('return-to-roll-modal');
+            document.getElementById('return-roll-case-title').textContent = `إعادة القضية للرول: ${judgment.caseNumber}/${judgment.year} - ${judgment.plaintiffName} ضد ${judgment.defendantName}`;
+            document.getElementById('return-roll-judgment-id').value = judgmentId;
+            document.getElementById('return-roll-reason').value = '';
+            document.getElementById('return-roll-session-date').value = '';
+            document.getElementById('return-roll-notes').value = '';
+            
+            modal.classList.add('active');
+            
+            modal.querySelector('.close-modal').onclick = () => modal.classList.remove('active');
+            document.getElementById('cancel-return-roll-btn').onclick = () => modal.classList.remove('active');
+            
+            document.getElementById('confirm-return-roll-btn').onclick = function() {
+                const reason = document.getElementById('return-roll-reason').value;
+                const sessionDate = document.getElementById('return-roll-session-date').value;
+                const notes = document.getElementById('return-roll-notes').value;
+                
+                if (!reason) {
+                    showToast('يرجى اختيار سبب الإعادة', 'warning');
+                    return;
+                }
+                if (!sessionDate) {
+                    showToast('يرجى اختيار تاريخ الجلسة', 'warning');
+                    return;
+                }
+                
+                const caseIndex = cases.findIndex(c => c.id === judgment.caseId);
+                if (caseIndex === -1) {
+                    showToast('تعذر العثور على بيانات القضية الأصلية', 'warning');
+                    return;
+                }
+                
+                // إعادة القضية إلى القضايا المتداولة
+                cases[caseIndex].status = 'قيد النظر';
+                cases[caseIndex].archived = false;
+                delete cases[caseIndex].archivedAt;
+                
+                // تحديث حالة الجلسات السابقة لتصبح منتهية
+                if (cases[caseIndex].sessions) {
+                    cases[caseIndex].sessions.forEach(session => {
+                        if (session.status === 'مستقبلية') session.status = 'منتهية';
+                    });
+                }
+                
+                addCaseActionLog(caseIndex, {
+                    type: 'إعادة للرول',
+                    reason: reason,
+                    notes: notes,
+                    date: sessionDate,
+                    status: 'مستقبلية'
+                });
+                
+                syncSave('cases', cases);
+                showToast('تم إعادة القضية للرول بنجاح!');
                 
                 loadCasesTable();
                 loadReservedCasesTable();
@@ -4894,13 +5249,16 @@
             caseIdInput.value = caseId;
             document.getElementById('judgment-modal-title').innerHTML = '<i class="fas fa-gavel"></i> تسجيل حكم';
             document.getElementById('confirm-judgment-btn').innerHTML = '<i class="fas fa-check"></i> تسجيل الحكم';
-            document.getElementById('judgment-type').value = '';
             document.getElementById('judgment-text').value = '';
             document.getElementById('judgment-summary').value = '';
             document.getElementById('judgment-notes').value = '';
             
             // تعيين التاريخ الافتراضي
             document.getElementById('judgment-date').value = new Date().toISOString().split('T')[0];
+            
+            // إعادة تعيين اختيار مدة الطعن للوضع الافتراضي (استئناف 40 يوم)
+            resetAppealSelector('استئناف', '40');
+            setupAppealSelector();
             
             modal.classList.add('active');
             
@@ -4910,14 +5268,15 @@
             
             // زر تسجيل الحكم
             document.getElementById('confirm-judgment-btn').onclick = function() {
-                const judgmentType = document.getElementById('judgment-type').value;
                 const judgmentDate = document.getElementById('judgment-date').value;
                 const judgmentText = document.getElementById('judgment-text').value;
                 const judgmentSummary = document.getElementById('judgment-summary').value;
                 const judgmentNotes = document.getElementById('judgment-notes').value;
+                const appealInfo = getSelectedAppealInfo(judgmentDate);
+                const judgmentType = appealInfo.label; // نص وصفي: "استئناف (40 يوم)" أو "نقض (60 يوم)" - يحل محل نوع الحكم القديم
                 
-                if (!judgmentType) {
-                    showToast('يرجى اختيار نوع الحكم', 'warning');
+                if (!judgmentDate) {
+                    showToast('يرجى إدخال تاريخ الحكم', 'warning');
                     return;
                 }
                 
@@ -4936,6 +5295,10 @@
                     cases[caseIndex].judgmentSummary = judgmentSummary;
                     cases[caseIndex].judgmentNotes = judgmentNotes;
                     cases[caseIndex].judgedAt = new Date().toISOString();
+                    cases[caseIndex].appealType = appealInfo.type;
+                    cases[caseIndex].appealDurationDays = appealInfo.durationDays;
+                    cases[caseIndex].appealDeadline = appealInfo.deadline;
+                    cases[caseIndex].appealNotified = {};
                     addCaseActionLog(caseIndex, { type: `صدور حكم (${judgmentType})`, reason: judgmentSummary, notes: judgmentNotes, date: judgmentDate, status: 'منتهية' });
                 }
                 
@@ -4949,6 +5312,9 @@
                     defendantName: defendantName,
                     courtType: caseData.courtType,
                     judgmentType: judgmentType,
+                    appealType: appealInfo.type,
+                    appealDurationDays: appealInfo.durationDays,
+                    appealDeadline: appealInfo.deadline,
                     judgmentDate: judgmentDate,
                     judgmentText: judgmentText,
                     judgmentSummary: judgmentSummary,
@@ -4967,6 +5333,7 @@
                 loadJudgmentsTable();
                 updateDashboard();
                 updateSearchResults();
+                checkAppealDeadlines();
                 
                 modal.classList.remove('active');
             };
@@ -5277,6 +5644,7 @@
                             <button class="btn-action btn-delete" onclick="deleteJudgment(${j.id})"><i class="fas fa-trash"></i> حذف</button>
                             <button class="btn-action btn-whatsapp-action" onclick="shareJudgmentViaWhatsApp(${j.id})"><i class="fab fa-whatsapp"></i> واتساب</button>
                             <button class="btn-action btn-archive" onclick="archiveCaseFromJudgment(${j.id})" title="أرشفة"><i class="fas fa-archive"></i> أرشفة</button>
+                            <button class="btn-action btn-postpone" onclick="returnJudgmentToRoll(${j.id})" title="إعادة للرول"><i class="fas fa-undo-alt"></i> إعادة للرول</button>
                         </div>
                     </td>
                 `;
@@ -5377,11 +5745,14 @@
             document.getElementById('confirm-judgment-btn').innerHTML = '<i class="fas fa-check"></i> حفظ التعديلات';
             
             document.getElementById('judgment-case-id').value = judgment.caseId || '';
-            document.getElementById('judgment-type').value = judgment.judgmentType || '';
             document.getElementById('judgment-date').value = judgment.judgmentDate || '';
             document.getElementById('judgment-text').value = judgment.judgmentText || '';
             document.getElementById('judgment-summary').value = judgment.judgmentSummary || '';
             document.getElementById('judgment-notes').value = judgment.notes || '';
+            
+            // إعادة تعيين اختيار مدة الطعن ببيانات الحكم الحالية (أو الافتراضي إن لم تكن مسجلة من قبل)
+            resetAppealSelector(judgment.appealType || 'استئناف', String(judgment.appealDurationDays === 15 ? 15 : 40));
+            setupAppealSelector();
             
             modal.classList.add('active');
             
@@ -5391,14 +5762,15 @@
             
             // زر حفظ التعديلات
             document.getElementById('confirm-judgment-btn').onclick = function() {
-                const judgmentType = document.getElementById('judgment-type').value;
                 const judgmentDate = document.getElementById('judgment-date').value;
                 const judgmentText = document.getElementById('judgment-text').value;
                 const judgmentSummary = document.getElementById('judgment-summary').value;
                 const judgmentNotes = document.getElementById('judgment-notes').value;
+                const appealInfo = getSelectedAppealInfo(judgmentDate);
+                const judgmentType = appealInfo.label;
                 
-                if (!judgmentType) {
-                    showToast('يرجى اختيار نوع الحكم', 'warning');
+                if (!judgmentDate) {
+                    showToast('يرجى إدخال تاريخ الحكم', 'warning');
                     return;
                 }
                 if (!judgmentText) {
@@ -5409,6 +5781,9 @@
                 const judgmentIndex = judgments.findIndex(j => j.id === judgmentId);
                 if (judgmentIndex !== -1) {
                     judgments[judgmentIndex].judgmentType = judgmentType;
+                    judgments[judgmentIndex].appealType = appealInfo.type;
+                    judgments[judgmentIndex].appealDurationDays = appealInfo.durationDays;
+                    judgments[judgmentIndex].appealDeadline = appealInfo.deadline;
                     judgments[judgmentIndex].judgmentDate = judgmentDate;
                     judgments[judgmentIndex].judgmentText = judgmentText;
                     judgments[judgmentIndex].judgmentSummary = judgmentSummary;
@@ -5420,6 +5795,9 @@
                 const caseIndex = cases.findIndex(c => c.id === judgment.caseId);
                 if (caseIndex !== -1) {
                     cases[caseIndex].judgmentType = judgmentType;
+                    cases[caseIndex].appealType = appealInfo.type;
+                    cases[caseIndex].appealDurationDays = appealInfo.durationDays;
+                    cases[caseIndex].appealDeadline = appealInfo.deadline;
                     cases[caseIndex].judgmentDate = judgmentDate;
                     cases[caseIndex].judgmentText = judgmentText;
                     cases[caseIndex].judgmentSummary = judgmentSummary;
@@ -5433,6 +5811,7 @@
                 loadJudgmentsTable();
                 updateDashboard();
                 updateSearchResults();
+                checkAppealDeadlines();
                 
                 modal.classList.remove('active');
             };
