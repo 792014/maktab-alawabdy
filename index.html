@@ -743,6 +743,17 @@
             transform: translateY(-2px);
         }
         
+        .btn-archive {
+            background-color: rgba(212, 175, 55, 0.15);
+            color: #b8860b;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        
+        .btn-archive:hover {
+            background-color: rgba(212, 175, 55, 0.28);
+            transform: translateY(-2px);
+        }
+        
         /* Dashboard Stats */
         .stats-container {
             display: grid;
@@ -1659,8 +1670,14 @@
                 <div class="tab" data-tab="cancelled-cases">
                     <i class="fas fa-ban"></i> قضايا مشطوبة
                 </div>
+                <div class="tab" data-tab="suspended-cases">
+                    <i class="fas fa-pause-circle"></i> القضايا الموقوفة
+                </div>
                 <div class="tab" data-tab="judgments">
                     <i class="fas fa-file-contract"></i> الأحكام
+                </div>
+                <div class="tab" data-tab="archived-cases">
+                    <i class="fas fa-archive"></i> أرشيف القضايا
                 </div>
                 <div class="tab" data-tab="print-list">
                     <i class="fas fa-list"></i> طباعة قائمة القضايا
@@ -1957,7 +1974,12 @@
                     </div>
                 </form>
                 
-                <h3 class="section-title" style="margin-top: 40px;"><i class="fas fa-list"></i> قائمة القضايا</h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top: 40px;">
+                    <h3 class="section-title" style="margin-top: 0;"><i class="fas fa-list"></i> قائمة القضايا</h3>
+                    <button class="btn btn-info" onclick="openCasesInNewWindow()">
+                        <i class="fas fa-external-link-alt"></i> فتح قائمة القضايا في نافذة مستقلة
+                    </button>
+                </div>
                 <div class="table-container">
                     <table id="cases-table">
                         <thead>
@@ -2162,6 +2184,61 @@
                 </div>
             </div>
             
+            <!-- Suspended Cases Tab -->
+            <div id="suspended-cases" class="tab-content">
+                <div class="control-buttons">
+                    <h2 class="section-title"><i class="fas fa-pause-circle"></i> القضايا الموقوفة</h2>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" id="search-suspended-case-btn">
+                            <i class="fas fa-search"></i> بحث في القضايا الموقوفة
+                        </button>
+                        <button class="btn btn-export" id="export-suspended-cases-btn">
+                            <i class="fas fa-file-export"></i> تصدير القضايا الموقوفة
+                        </button>
+                    </div>
+                </div>
+                
+                <h3 class="section-title"><i class="fas fa-hourglass-half"></i> وقف تعليقي</h3>
+                <div class="table-container">
+                    <table id="suspended-conditional-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الدعوى</th>
+                                <th>سنة الدعوى</th>
+                                <th>المدعي</th>
+                                <th>المدعى عليه</th>
+                                <th>نوع المحكمة</th>
+                                <th>تاريخ الوقف</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suspended-conditional-body">
+                            <!-- سيتم ملؤها بالبيانات -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h3 class="section-title" style="margin-top: 30px;"><i class="fas fa-gavel"></i> وقف جزائي</h3>
+                <div class="table-container">
+                    <table id="suspended-penal-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الدعوى</th>
+                                <th>سنة الدعوى</th>
+                                <th>المدعي</th>
+                                <th>المدعى عليه</th>
+                                <th>نوع المحكمة</th>
+                                <th>تاريخ الوقف</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suspended-penal-body">
+                            <!-- سيتم ملؤها بالبيانات -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
             <!-- Judgments Tab -->
             <div id="judgments" class="tab-content">
                 <div class="control-buttons">
@@ -2195,6 +2272,42 @@
                             </tr>
                         </thead>
                         <tbody id="judgments-body">
+                            <!-- سيتم ملؤها بالبيانات -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Archived Cases Tab -->
+            <div id="archived-cases" class="tab-content">
+                <div class="control-buttons">
+                    <h2 class="section-title"><i class="fas fa-archive"></i> أرشيف القضايا</h2>
+                    <div class="action-buttons">
+                        <button class="btn btn-info" id="search-archived-case-btn">
+                            <i class="fas fa-search"></i> بحث في الأرشيف
+                        </button>
+                        <button class="btn btn-export" id="export-archived-cases-btn">
+                            <i class="fas fa-file-export"></i> تصدير الأرشيف
+                        </button>
+                    </div>
+                </div>
+                
+                <h3 class="section-title"><i class="fas fa-list"></i> القضايا المؤرشفة</h3>
+                <div class="table-container">
+                    <table id="archived-cases-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الدعوى</th>
+                                <th>سنة الدعوى</th>
+                                <th>المدعي</th>
+                                <th>المدعى عليه</th>
+                                <th>نوع المحكمة</th>
+                                <th>الحالة قبل الأرشفة</th>
+                                <th>تاريخ الأرشفة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archived-cases-body">
                             <!-- سيتم ملؤها بالبيانات -->
                         </tbody>
                     </table>
@@ -2528,6 +2641,11 @@
                         <h4>حجز للحكم</h4>
                         <p>حجز القضية للحكم</p>
                     </div>
+                    <div class="postpone-option" data-type="suspend">
+                        <i class="fas fa-pause-circle" style="color: #d4af37;"></i>
+                        <h4>وقف الدعوى</h4>
+                        <p>وقف تعليقي أو جزائي</p>
+                    </div>
                     <div class="postpone-option" data-type="cancel">
                         <i class="fas fa-ban" style="color: var(--danger-color);"></i>
                         <h4>شطب الدعوى</h4>
@@ -2587,6 +2705,42 @@
                     </div>
                 </div>
                 
+                <div id="suspend-form" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group" style="display:flex; gap:15px;">
+                            <div class="postpone-option suspend-type-option active" data-suspend-type="تعليقي" style="flex:1;">
+                                <i class="fas fa-hourglass-half" style="color: #d4af37;"></i>
+                                <h4>وقف تعليقي</h4>
+                                <p>وقف الدعوى بصفة تعليقية</p>
+                            </div>
+                            <div class="postpone-option suspend-type-option" data-suspend-type="جزائي" style="flex:1;">
+                                <i class="fas fa-gavel" style="color: #d4af37;"></i>
+                                <h4>وقف جزائي</h4>
+                                <p>وقف الدعوى بصفة جزائية</p>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selected-suspend-type" value="تعليقي">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="suspend-date">تاريخ الوقف</label>
+                            <input type="date" id="suspend-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="suspend-reason">سبب الوقف</label>
+                            <input type="text" id="suspend-reason" class="form-control" placeholder="اكتب سبب وقف الدعوى">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="suspend-notes">ملاحظات إضافية</label>
+                            <textarea id="suspend-notes" class="form-control" rows="3" placeholder="ملاحظات إضافية عن وقف الدعوى"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
                 <div id="cancel-form" style="display: none;">
                     <div class="form-row">
                         <div class="form-group">
@@ -2630,7 +2784,7 @@
     <div id="judgment-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 class="modal-title"><i class="fas fa-gavel"></i> تسجيل حكم</h3>
+                <h3 class="modal-title" id="judgment-modal-title"><i class="fas fa-gavel"></i> تسجيل حكم</h3>
                 <button class="close-modal">&times;</button>
             </div>
             
@@ -2798,14 +2952,21 @@
             }
         }
 
-        if (firebase.auth) {
-            firebase.auth().onAuthStateChanged(function (user) {
-                authenticatedUser = user;
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            try {
+                firebase.auth().onAuthStateChanged(function (user) {
+                    authenticatedUser = user;
+                    authResolved = true;
+                    revealAppOrLogin();
+                });
+            } catch (e) {
+                console.error('تعذر تفعيل تسجيل الدخول:', e);
                 authResolved = true;
+                authenticatedUser = true;
                 revealAppOrLogin();
-            });
+            }
         } else {
-            // في حال تعذر تحميل مكتبة تسجيل الدخول لأي سبب، نسمح بالدخول محلياً بدل تعطيل البرنامج بالكامل
+            // في حال تعذر تحميل مكتبة تسجيل الدخول لأي سبب (مثل انقطاع الإنترنت)، نسمح بالدخول محلياً بدل تعطيل البرنامج بالكامل
             authResolved = true;
             authenticatedUser = true;
             revealAppOrLogin();
@@ -2937,6 +3098,10 @@
                     loadReservedCasesTable();
                 } else if (tabId === 'cancelled-cases') {
                     loadCancelledCasesTable();
+                } else if (tabId === 'suspended-cases') {
+                    loadSuspendedCasesTable();
+                } else if (tabId === 'archived-cases') {
+                    loadArchivedCasesTable();
                 } else if (tabId === 'judgments') {
                     loadJudgmentsTable();
                 } else if (tabId === 'print-list') {
@@ -3728,8 +3893,8 @@
             const casesTableBody = document.getElementById('cases-table-body');
             casesTableBody.innerHTML = '';
             
-            // عرض القضايا النشطة فقط (غير محجوزة وغير مشطوبة)
-            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة');
+            // عرض القضايا النشطة فقط (غير محجوزة وغير مشطوبة وغير موقوفة وغير مؤرشفة)
+            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة' && c.status !== 'موقوفة' && !c.archived);
             
             activeCases.forEach(c => {
                 // الحصول على اسم المدعي والمدعى عليه
@@ -3771,6 +3936,7 @@
                             <button class="btn-action btn-postpone" onclick="postponeCase(${c.id})"><i class="fas fa-forward"></i> ترحيل</button>
                             <button class="btn-action btn-history" onclick="showSessionHistory(${c.id})"><i class="fas fa-history"></i> سجل الجلسات</button>
                             <button class="btn-action btn-whatsapp-action" onclick="shareCaseViaWhatsApp(${c.id})"><i class="fab fa-whatsapp"></i> واتساب</button>
+                            <button class="btn-action btn-archive" onclick="archiveCase(${c.id})" title="أرشفة"><i class="fas fa-archive"></i> أرشفة</button>
                         </div>
                     </td>
                 `;
@@ -3790,6 +3956,112 @@
                 `;
             }
         }
+        
+        // فتح قائمة القضايا بالكامل في نافذة مستقلة (جميع القضايا المسجلة بكل حالاتها)
+        window.openCasesInNewWindow = function() {
+            const listWindow = window.open('', '_blank', 'width=1300,height=850,scrollbars=yes');
+            if (!listWindow) {
+                showToast('يرجى السماح بالنوافذ المنبثقة لهذا الموقع لفتح القائمة', 'warning');
+                return;
+            }
+            
+            const today = new Date().toISOString().split('T')[0];
+            
+            function resolveNames(c) {
+                let plaintiffName = c.plaintiffName || '';
+                let defendantName = c.defendantName || '';
+                if (c.plaintiffId) {
+                    const pc = clients.find(client => client.id === c.plaintiffId);
+                    if (pc) plaintiffName = pc.name;
+                }
+                if (c.defendantId) {
+                    const dc = clients.find(client => client.id === c.defendantId);
+                    if (dc) defendantName = dc.name;
+                }
+                return { plaintiffName, defendantName };
+            }
+            
+            function nextSession(c) {
+                if (c.sessions && c.sessions.length > 0) {
+                    const upcoming = c.sessions.filter(s => s.status === 'مستقبلية');
+                    if (upcoming.length > 0) return formatDate(upcoming[upcoming.length - 1].date);
+                }
+                return '—';
+            }
+            
+            let rowsHTML = '';
+            cases.forEach(c => {
+                const { plaintiffName, defendantName } = resolveNames(c);
+                const statusLabel = c.archived ? `مؤرشفة (${c.status || ''})` : (c.status || 'قيد النظر');
+                rowsHTML += `
+                    <tr>
+                        <td>${c.caseNumber}</td>
+                        <td>${c.year}</td>
+                        <td>${plaintiffName}</td>
+                        <td>${defendantName}</td>
+                        <td>${c.courtType || 'غير محدد'}</td>
+                        <td>${statusLabel}</td>
+                        <td>${nextSession(c)}</td>
+                    </tr>
+                `;
+            });
+            
+            if (cases.length === 0) {
+                rowsHTML = `<tr><td colspan="7" style="text-align:center; padding:30px;">لا توجد قضايا مسجلة بعد</td></tr>`;
+            }
+            
+            const pageContent = `
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>قائمة القضايا - مكتب الدكتور محمد العوابدي</title>
+                    <style>
+                        body { font-family: 'Cairo', Arial, sans-serif; margin: 0; padding: 25px; background:#14100a; color:#f3e6c4; }
+                        h1 { color:#d4af37; text-align:center; margin-bottom:4px; }
+                        p.sub { text-align:center; color:#b8860b; margin-top:0; }
+                        input#quick-search { width:100%; max-width:400px; display:block; margin:15px auto; padding:10px 14px; border-radius:8px; border:1px solid rgba(212,175,55,.4); background:rgba(255,255,255,.05); color:#f3e6c4; font-size:14px; }
+                        table { width:100%; border-collapse: collapse; margin-top: 15px; }
+                        th { background: linear-gradient(135deg,#d4af37,#b8860b); color:#14100a; padding: 10px; text-align:right; }
+                        td { padding: 9px 10px; border-bottom: 1px solid rgba(212,175,55,.15); }
+                        tr:hover { background: rgba(212,175,55,.06); }
+                        .count-badge { text-align:center; color:#8a7a52; margin-bottom: 10px; }
+                        @media print { body { background:white; color:black; } th { -webkit-print-color-adjust: exact; } input#quick-search{ display:none; } }
+                    </style>
+                </head>
+                <body>
+                    <h1>قائمة القضايا</h1>
+                    <p class="sub">مكتب الدكتور محمد العوابدي - المحامي بالاستئناف العالي ومجلس الدولة</p>
+                    <p class="count-badge">إجمالي القضايا المسجلة: ${cases.length} — تاريخ العرض: ${formatDate(today)}</p>
+                    <input type="text" id="quick-search" placeholder="بحث سريع برقم القضية أو الاسم...">
+                    <table id="all-cases-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الدعوى</th>
+                                <th>سنة الدعوى</th>
+                                <th>المدعي</th>
+                                <th>المدعى عليه</th>
+                                <th>نوع المحكمة</th>
+                                <th>الحالة</th>
+                                <th>الجلسة القادمة</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHTML}</tbody>
+                    </table>
+                    <script>
+                        document.getElementById('quick-search').addEventListener('input', function() {
+                            const q = this.value.trim();
+                            document.querySelectorAll('#all-cases-table tbody tr').forEach(function(row) {
+                                row.style.display = row.textContent.includes(q) ? '' : 'none';
+                            });
+                        });
+                    <\/script>
+                </body>
+                </html>
+            `;
+            
+            listWindow.document.write(pageContent);
+            listWindow.document.close();
+        };
         
         // عرض سجل الجلسات
         window.showSessionHistory = function(id) {
@@ -3860,10 +4132,13 @@
             const modal = document.getElementById('postpone-modal');
             const title = document.getElementById('postpone-case-title');
             const caseIdInput = document.getElementById('postpone-case-id');
-            const postponeOptions = document.querySelectorAll('.postpone-option');
+            const postponeOptions = document.querySelectorAll('.postpone-options .postpone-option');
             const postponeForm = document.getElementById('postpone-form');
             const reserveForm = document.getElementById('reserve-form');
+            const suspendForm = document.getElementById('suspend-form');
             const cancelForm = document.getElementById('cancel-form');
+            const suspendTypeOptions = document.querySelectorAll('.suspend-type-option');
+            const selectedSuspendType = document.getElementById('selected-suspend-type');
             
             // الحصول على اسم المدعي والمدعى عليه
             let plaintiffName = caseData.plaintiffName || '';
@@ -3888,12 +4163,21 @@
             document.getElementById('new-session-date').value = tomorrow.toISOString().split('T')[0];
             document.getElementById('reserve-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('cancel-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('suspend-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('session-time').value = '09:00';
             
             // إعادة تعيين النماذج
             postponeForm.style.display = 'block';
             reserveForm.style.display = 'none';
+            suspendForm.style.display = 'none';
             cancelForm.style.display = 'none';
+            
+            // إعادة تعيين نوع الوقف الافتراضي
+            selectedSuspendType.value = 'تعليقي';
+            suspendTypeOptions.forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.getAttribute('data-suspend-type') === 'تعليقي') opt.classList.add('active');
+            });
             
             // إعادة تعيين خيارات الترحيل
             postponeOptions.forEach(option => {
@@ -3905,30 +4189,40 @@
             
             modal.classList.add('active');
             
-            // إضافة أحداث لخيارات الترحيل
+            // إضافة أحداث لخيارات الترحيل (نستنسخ العناصر أولاً لإزالة أي مستمعات سابقة متراكمة)
             postponeOptions.forEach(option => {
+                const newOption = option.cloneNode(true);
+                option.parentNode.replaceChild(newOption, option);
+            });
+            const freshPostponeOptions = document.querySelectorAll('.postpone-options .postpone-option');
+            freshPostponeOptions.forEach(option => {
                 option.addEventListener('click', function() {
                     const type = this.getAttribute('data-type');
                     
                     // إزالة النشاط من جميع الخيارات
-                    postponeOptions.forEach(opt => opt.classList.remove('active'));
+                    freshPostponeOptions.forEach(opt => opt.classList.remove('active'));
                     // إضافة النشاط للخيار المختار
                     this.classList.add('active');
                     
                     // إظهار النموذج المناسب
-                    if (type === 'postpone') {
-                        postponeForm.style.display = 'block';
-                        reserveForm.style.display = 'none';
-                        cancelForm.style.display = 'none';
-                    } else if (type === 'reserve') {
-                        postponeForm.style.display = 'none';
-                        reserveForm.style.display = 'block';
-                        cancelForm.style.display = 'none';
-                    } else if (type === 'cancel') {
-                        postponeForm.style.display = 'none';
-                        reserveForm.style.display = 'none';
-                        cancelForm.style.display = 'block';
-                    }
+                    postponeForm.style.display = type === 'postpone' ? 'block' : 'none';
+                    reserveForm.style.display = type === 'reserve' ? 'block' : 'none';
+                    suspendForm.style.display = type === 'suspend' ? 'block' : 'none';
+                    cancelForm.style.display = type === 'cancel' ? 'block' : 'none';
+                });
+            });
+            
+            // إضافة أحداث لاختيار نوع الوقف (تعليقي/جزائي) - نستنسخ لتفادي تراكم المستمعات
+            suspendTypeOptions.forEach(option => {
+                const newOption = option.cloneNode(true);
+                option.parentNode.replaceChild(newOption, option);
+            });
+            const freshSuspendTypeOptions = document.querySelectorAll('.suspend-type-option');
+            freshSuspendTypeOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    freshSuspendTypeOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    document.getElementById('selected-suspend-type').value = this.getAttribute('data-suspend-type');
                 });
             });
             
@@ -3939,7 +4233,7 @@
             // زر التأكيد
             document.getElementById('confirm-postpone-btn').onclick = function() {
                 const caseId = parseInt(caseIdInput.value);
-                const activeOption = document.querySelector('.postpone-option.active');
+                const activeOption = document.querySelector('.postpone-options .postpone-option.active');
                 const type = activeOption.getAttribute('data-type');
                 
                 if (type === 'postpone') {
@@ -3948,6 +4242,9 @@
                 } else if (type === 'reserve') {
                     // حجز للحكم
                     reserveForJudgment(caseId);
+                } else if (type === 'suspend') {
+                    // وقف الدعوى
+                    suspendCase(caseId, document.getElementById('selected-suspend-type').value);
                 } else if (type === 'cancel') {
                     // شطب الدعوى
                     cancelCase(caseId);
@@ -4094,6 +4391,107 @@
             updateSearchResults();
         }
         
+        // وقف الدعوى (تعليقي أو جزائي)
+        function suspendCase(caseId, suspensionType) {
+            const suspendDate = document.getElementById('suspend-date').value;
+            const suspendReason = document.getElementById('suspend-reason').value;
+            const suspendNotes = document.getElementById('suspend-notes').value;
+            
+            const caseIndex = cases.findIndex(c => c.id === caseId);
+            if (caseIndex === -1) return;
+            
+            // تحديث حالة القضية
+            cases[caseIndex].status = 'موقوفة';
+            cases[caseIndex].suspensionType = suspensionType; // "تعليقي" أو "جزائي"
+            cases[caseIndex].suspendedDate = suspendDate;
+            cases[caseIndex].suspendReason = suspendReason;
+            cases[caseIndex].suspendNotes = suspendNotes;
+            cases[caseIndex].suspendedAt = new Date().toISOString();
+            
+            syncSave('cases', cases);
+            
+            showToast(`تم وقف الدعوى (${suspensionType}) بنجاح!`);
+            
+            // تحديث العرض
+            loadCasesTable();
+            loadSuspendedCasesTable();
+            updateDashboard();
+            updateSearchResults();
+        }
+        
+        // استئناف نظر قضية موقوفة (الرجوع للقضايا النشطة)
+        window.resumeSuspendedCase = function(caseId) {
+            if (!confirm('هل تريد استئناف نظر هذه القضية والرجوع بها إلى القضايا النشطة؟')) return;
+            const caseIndex = cases.findIndex(c => c.id === caseId);
+            if (caseIndex === -1) return;
+            
+            cases[caseIndex].status = 'قيد النظر';
+            delete cases[caseIndex].suspensionType;
+            
+            syncSave('cases', cases);
+            showToast('تم استئناف نظر القضية بنجاح!');
+            
+            loadCasesTable();
+            loadSuspendedCasesTable();
+            updateDashboard();
+            updateSearchResults();
+        };
+        
+        // نقل قضية إلى الأرشيف (من أي قائمة: القضايا، الأحكام، المشطوبة، الموقوفة)
+        window.archiveCase = function(caseId) {
+            if (!confirm('هل تريد نقل هذه القضية إلى الأرشيف؟')) return;
+            const caseIndex = cases.findIndex(c => c.id === caseId);
+            if (caseIndex === -1) {
+                showToast('تعذر العثور على بيانات القضية الأصلية للأرشفة', 'warning');
+                return;
+            }
+            
+            cases[caseIndex].archived = true;
+            cases[caseIndex].archivedAt = new Date().toISOString();
+            
+            syncSave('cases', cases);
+            showToast('تم نقل القضية إلى الأرشيف بنجاح!');
+            
+            // تحديث كل العروض المحتمل تأثرها
+            loadCasesTable();
+            loadReservedCasesTable();
+            loadCancelledCasesTable();
+            loadSuspendedCasesTable();
+            loadJudgmentsTable();
+            loadArchivedCasesTable();
+            updateDashboard();
+            updateSearchResults();
+        };
+        
+        // نقل قضية من قائمة أحكام (بمعرف الحكم) إلى الأرشيف
+        window.archiveCaseFromJudgment = function(judgmentId) {
+            const judgment = judgments.find(j => j.id === judgmentId);
+            if (!judgment) return;
+            window.archiveCase(judgment.caseId);
+        };
+        
+        // استعادة قضية من الأرشيف
+        window.unarchiveCase = function(caseId) {
+            if (!confirm('هل تريد استعادة هذه القضية من الأرشيف؟')) return;
+            const caseIndex = cases.findIndex(c => c.id === caseId);
+            if (caseIndex === -1) return;
+            
+            cases[caseIndex].archived = false;
+            delete cases[caseIndex].archivedAt;
+            
+            syncSave('cases', cases);
+            showToast('تم استعادة القضية من الأرشيف بنجاح!');
+            
+            loadCasesTable();
+            loadReservedCasesTable();
+            loadCancelledCasesTable();
+            loadSuspendedCasesTable();
+            loadJudgmentsTable();
+            loadArchivedCasesTable();
+            updateDashboard();
+            updateSearchResults();
+        };
+        
         // تعديل قضية
         window.editCase = function(id) {
             const caseData = cases.find(c => c.id === id);
@@ -4156,7 +4554,7 @@
             const reservedCasesBody = document.getElementById('reserved-cases-body');
             reservedCasesBody.innerHTML = '';
             
-            const reservedCases = cases.filter(c => c.status === 'محجوزة للحكم');
+            const reservedCases = cases.filter(c => c.status === 'محجوزة للحكم' && !c.archived);
             
             reservedCases.forEach(c => {
                 // الحصول على اسم المدعي والمدعى عليه
@@ -4233,6 +4631,12 @@
             
             title.textContent = `تسجيل حكم للقضية: ${caseData.caseNumber}/${caseData.year} - ${plaintiffName} ضد ${defendantName}`;
             caseIdInput.value = caseId;
+            document.getElementById('judgment-modal-title').innerHTML = '<i class="fas fa-gavel"></i> تسجيل حكم';
+            document.getElementById('confirm-judgment-btn').innerHTML = '<i class="fas fa-check"></i> تسجيل الحكم';
+            document.getElementById('judgment-type').value = '';
+            document.getElementById('judgment-text').value = '';
+            document.getElementById('judgment-summary').value = '';
+            document.getElementById('judgment-notes').value = '';
             
             // تعيين التاريخ الافتراضي
             document.getElementById('judgment-date').value = new Date().toISOString().split('T')[0];
@@ -4318,7 +4722,7 @@
             const cancelledCasesBody = document.getElementById('cancelled-cases-body');
             cancelledCasesBody.innerHTML = '';
             
-            const cancelledCases = cases.filter(c => c.status === 'مشطوبة');
+            const cancelledCases = cases.filter(c => c.status === 'مشطوبة' && !c.archived);
             
             cancelledCases.forEach(c => {
                 // الحصول على اسم المدعي والمدعى عليه
@@ -4350,6 +4754,7 @@
                             <button class="btn-action btn-edit" onclick="editCase(${c.id})"><i class="fas fa-edit"></i> تعديل</button>
                             <button class="btn-action btn-delete" onclick="deleteCase(${c.id})"><i class="fas fa-trash"></i> حذف</button>
                             <button class="btn-action btn-history" onclick="showSessionHistory(${c.id})"><i class="fas fa-history"></i> سجل الجلسات</button>
+                            <button class="btn-action btn-archive" onclick="archiveCase(${c.id})" title="أرشفة"><i class="fas fa-archive"></i> أرشفة</button>
                         </div>
                     </td>
                 `;
@@ -4364,6 +4769,129 @@
                             <i class="fas fa-ban"></i>
                             <h3>لا توجد قضايا مشطوبة</h3>
                             <p>يمكنك شطب القضايا من خلال زر ترحيل في قائمة القضايا</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // تحميل جدول القضايا الموقوفة (مقسمة إلى تعليقي وجزائي)
+        function loadSuspendedCasesTable() {
+            const conditionalBody = document.getElementById('suspended-conditional-body');
+            const penalBody = document.getElementById('suspended-penal-body');
+            if (!conditionalBody || !penalBody) return;
+            conditionalBody.innerHTML = '';
+            penalBody.innerHTML = '';
+            
+            const suspendedCases = cases.filter(c => c.status === 'موقوفة' && !c.archived);
+            const conditionalCases = suspendedCases.filter(c => c.suspensionType === 'تعليقي');
+            const penalCases = suspendedCases.filter(c => c.suspensionType === 'جزائي');
+            
+            function buildRow(c) {
+                let plaintiffName = c.plaintiffName || '';
+                let defendantName = c.defendantName || '';
+                
+                if (c.plaintiffId) {
+                    const plaintiffClient = clients.find(client => client.id === c.plaintiffId);
+                    if (plaintiffClient) plaintiffName = plaintiffClient.name;
+                }
+                if (c.defendantId) {
+                    const defendantClient = clients.find(client => client.id === c.defendantId);
+                    if (defendantClient) defendantName = defendantClient.name;
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${c.caseNumber}</td>
+                    <td>${c.year}</td>
+                    <td>${plaintiffName}</td>
+                    <td>${defendantName}</td>
+                    <td>${c.courtType || 'غير محدد'}</td>
+                    <td>${c.suspendedDate ? formatDate(c.suspendedDate) : 'غير محدد'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action btn-success" onclick="resumeSuspendedCase(${c.id})" title="استئناف نظر الدعوى"><i class="fas fa-play"></i> استئناف</button>
+                            <button class="btn-action btn-edit" onclick="editCase(${c.id})"><i class="fas fa-edit"></i> تعديل</button>
+                            <button class="btn-action btn-delete" onclick="deleteCase(${c.id})"><i class="fas fa-trash"></i> حذف</button>
+                            <button class="btn-action btn-archive" onclick="archiveCase(${c.id})" title="أرشفة"><i class="fas fa-archive"></i> أرشفة</button>
+                        </div>
+                    </td>
+                `;
+                return row;
+            }
+            
+            conditionalCases.forEach(c => conditionalBody.appendChild(buildRow(c)));
+            penalCases.forEach(c => penalBody.appendChild(buildRow(c)));
+            
+            if (conditionalCases.length === 0) {
+                conditionalBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-hourglass-half"></i>
+                            <h3>لا توجد قضايا موقوفة تعليقياً</h3>
+                        </td>
+                    </tr>
+                `;
+            }
+            if (penalCases.length === 0) {
+                penalBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-gavel"></i>
+                            <h3>لا توجد قضايا موقوفة جزائياً</h3>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // تحميل جدول أرشيف القضايا
+        function loadArchivedCasesTable() {
+            const archivedBody = document.getElementById('archived-cases-body');
+            if (!archivedBody) return;
+            archivedBody.innerHTML = '';
+            
+            const archivedCases = cases.filter(c => c.archived === true);
+            
+            archivedCases.forEach(c => {
+                let plaintiffName = c.plaintiffName || '';
+                let defendantName = c.defendantName || '';
+                
+                if (c.plaintiffId) {
+                    const plaintiffClient = clients.find(client => client.id === c.plaintiffId);
+                    if (plaintiffClient) plaintiffName = plaintiffClient.name;
+                }
+                if (c.defendantId) {
+                    const defendantClient = clients.find(client => client.id === c.defendantId);
+                    if (defendantClient) defendantName = defendantClient.name;
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${c.caseNumber}</td>
+                    <td>${c.year}</td>
+                    <td>${plaintiffName}</td>
+                    <td>${defendantName}</td>
+                    <td>${c.courtType || 'غير محدد'}</td>
+                    <td>${c.status || 'غير محدد'}</td>
+                    <td>${c.archivedAt ? formatDate(c.archivedAt.split('T')[0]) : 'غير محدد'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-action btn-info" onclick="unarchiveCase(${c.id})" title="استعادة من الأرشيف"><i class="fas fa-undo"></i> استعادة</button>
+                            <button class="btn-action btn-delete" onclick="deleteCase(${c.id})"><i class="fas fa-trash"></i> حذف نهائي</button>
+                        </div>
+                    </td>
+                `;
+                archivedBody.appendChild(row);
+            });
+            
+            if (archivedCases.length === 0) {
+                archivedBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <i class="fas fa-archive"></i>
+                            <h3>لا توجد قضايا في الأرشيف</h3>
+                            <p>يمكنك أرشفة القضايا من خلال زر "أرشفة" في القوائم المختلفة</p>
                         </td>
                     </tr>
                 `;
@@ -4486,6 +5014,7 @@
                             <button class="btn-action btn-edit" onclick="editJudgment(${j.id})"><i class="fas fa-edit"></i> تعديل</button>
                             <button class="btn-action btn-delete" onclick="deleteJudgment(${j.id})"><i class="fas fa-trash"></i> حذف</button>
                             <button class="btn-action btn-whatsapp-action" onclick="shareJudgmentViaWhatsApp(${j.id})"><i class="fab fa-whatsapp"></i> واتساب</button>
+                            <button class="btn-action btn-archive" onclick="archiveCaseFromJudgment(${j.id})" title="أرشفة"><i class="fas fa-archive"></i> أرشفة</button>
                         </div>
                     </td>
                 `;
@@ -4572,8 +5101,86 @@
         
         // تعديل الحكم
         function editJudgment(judgmentId) {
-            // سيتم تنفيذها لاحقاً
-            showToast('ميزة تعديل الأحكام قيد التطوير', 'info');
+            const judgment = judgments.find(j => j.id === judgmentId);
+            if (!judgment) {
+                showToast('تعذر العثور على بيانات الحكم', 'warning');
+                return;
+            }
+            
+            const modal = document.getElementById('judgment-modal');
+            const title = document.getElementById('judgment-case-title');
+            
+            title.textContent = `تعديل حكم القضية: ${judgment.caseNumber}/${judgment.year} - ${judgment.plaintiffName} ضد ${judgment.defendantName}`;
+            document.getElementById('judgment-modal-title').innerHTML = '<i class="fas fa-edit"></i> تعديل حكم';
+            document.getElementById('confirm-judgment-btn').innerHTML = '<i class="fas fa-check"></i> حفظ التعديلات';
+            
+            document.getElementById('judgment-case-id').value = judgment.caseId || '';
+            document.getElementById('judgment-type').value = judgment.judgmentType || '';
+            document.getElementById('judgment-date').value = judgment.judgmentDate || '';
+            document.getElementById('judgment-text').value = judgment.judgmentText || '';
+            document.getElementById('judgment-summary').value = judgment.judgmentSummary || '';
+            document.getElementById('judgment-notes').value = judgment.notes || '';
+            
+            modal.classList.add('active');
+            
+            // زر الإغلاق
+            modal.querySelector('.close-modal').onclick = () => modal.classList.remove('active');
+            document.getElementById('cancel-judgment-btn').onclick = () => modal.classList.remove('active');
+            
+            // زر حفظ التعديلات
+            document.getElementById('confirm-judgment-btn').onclick = function() {
+                const judgmentType = document.getElementById('judgment-type').value;
+                const judgmentDate = document.getElementById('judgment-date').value;
+                const judgmentText = document.getElementById('judgment-text').value;
+                const judgmentSummary = document.getElementById('judgment-summary').value;
+                const judgmentNotes = document.getElementById('judgment-notes').value;
+                
+                if (!judgmentType) {
+                    showToast('يرجى اختيار نوع الحكم', 'warning');
+                    return;
+                }
+                if (!judgmentText) {
+                    showToast('يرجى إدخال منطوق الحكم', 'warning');
+                    return;
+                }
+                
+                const judgmentIndex = judgments.findIndex(j => j.id === judgmentId);
+                if (judgmentIndex !== -1) {
+                    judgments[judgmentIndex].judgmentType = judgmentType;
+                    judgments[judgmentIndex].judgmentDate = judgmentDate;
+                    judgments[judgmentIndex].judgmentText = judgmentText;
+                    judgments[judgmentIndex].judgmentSummary = judgmentSummary;
+                    judgments[judgmentIndex].notes = judgmentNotes;
+                    judgments[judgmentIndex].updatedAt = new Date().toISOString();
+                }
+                
+                // تحديث بيانات الحكم داخل القضية الأصلية أيضاً إن وجدت
+                const caseIndex = cases.findIndex(c => c.id === judgment.caseId);
+                if (caseIndex !== -1) {
+                    cases[caseIndex].judgmentType = judgmentType;
+                    cases[caseIndex].judgmentDate = judgmentDate;
+                    cases[caseIndex].judgmentText = judgmentText;
+                    cases[caseIndex].judgmentSummary = judgmentSummary;
+                    cases[caseIndex].judgmentNotes = judgmentNotes;
+                    syncSave('cases', cases);
+                }
+                
+                syncSave('judgments', judgments);
+                showToast('تم تحديث الحكم بنجاح!');
+                
+                loadJudgmentsTable();
+                updateDashboard();
+                updateSearchResults();
+                
+                modal.classList.remove('active');
+            };
+            
+            // إغلاق عند النقر خارج المحتوى
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
         }
         
         // حذف الحكم
