@@ -1661,6 +1661,9 @@
                 <div class="tab" data-tab="cases">
                     <i class="fas fa-gavel"></i> تسجيل القضايا
                 </div>
+                <div class="tab" data-tab="cases-list">
+                    <i class="fas fa-list"></i> قائمة القضايا
+                </div>
                 <div class="tab" data-tab="clients">
                     <i class="fas fa-users"></i> تسجيل الموكلين
                 </div>
@@ -1973,9 +1976,12 @@
                         </button>
                     </div>
                 </form>
-                
-                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top: 40px;">
-                    <h3 class="section-title" style="margin-top: 0;"><i class="fas fa-list"></i> قائمة القضايا</h3>
+            </div>
+            
+            <!-- Cases List Tab (مستقل) -->
+            <div id="cases-list" class="tab-content">
+                <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+                    <h2 class="section-title" style="margin-top: 0;"><i class="fas fa-list"></i> قائمة القضايا</h2>
                     <button class="btn btn-info" onclick="openCasesInNewWindow()">
                         <i class="fas fa-external-link-alt"></i> فتح قائمة القضايا في نافذة مستقلة
                     </button>
@@ -2780,6 +2786,48 @@
         </div>
     </div>
 
+    <!-- Modal for Expediting a Suspended Case -->
+    <div id="expedite-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-fast-forward"></i> تعجيل الدعوى الموقوفة</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            
+            <div style="padding: 20px 0;">
+                <input type="hidden" id="expedite-case-id" value="">
+                <h4 id="expedite-case-title" style="color: var(--primary-color); margin-bottom: 20px;"></h4>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expedite-session-date">تاريخ جلسة التعجيل</label>
+                        <input type="date" id="expedite-session-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expedite-session-time">وقت الجلسة</label>
+                        <input type="time" id="expedite-session-time" class="form-control" value="09:00">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="expedite-notes">ملاحظات التعجيل (اختياري)</label>
+                        <textarea id="expedite-notes" class="form-control" rows="3" placeholder="سبب تعجيل الدعوى أو أي ملاحظات إضافية"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-row" style="margin-top: 20px;">
+                <button id="confirm-expedite-btn" class="btn btn-primary">
+                    <i class="fas fa-fast-forward"></i> تعجيل الدعوى
+                </button>
+                <button id="cancel-expedite-btn" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Judgment -->
     <div id="judgment-modal" class="modal">
         <div class="modal-content">
@@ -3089,9 +3137,10 @@
                     updateDashboard();
                     updateBackupStatus();
                 } else if (tabId === 'cases') {
-                    loadCasesTable();
                     loadClientsDropdowns();
                     setupInputTabs();
+                } else if (tabId === 'cases-list') {
+                    loadCasesTable();
                 } else if (tabId === 'clients') {
                     loadClientsTable();
                 } else if (tabId === 'reserved-cases') {
@@ -3157,7 +3206,7 @@
         
         // تحديث لوحة التحكم
         function updateDashboard() {
-            document.getElementById('total-cases').textContent = cases.length;
+            document.getElementById('total-cases').textContent = cases.filter(c => !c.archived).length;
             document.getElementById('total-clients').textContent = clients.length;
             
             // حساب الجلسات القادمة خلال أسبوع
@@ -3171,7 +3220,7 @@
             let upcomingSessionsCount = 0;
             
             cases.forEach(c => {
-                if (c.sessions && c.sessions.length > 0 && c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة') {
+                if (c.sessions && c.sessions.length > 0 && c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة' && c.status !== 'موقوفة' && !c.archived) {
                     const upcomingSessions = c.sessions.filter(s => {
                         return s.date >= todayStr && s.date <= nextWeekStr && s.status === 'مستقبلية';
                     });
@@ -3182,14 +3231,14 @@
             document.getElementById('upcoming-sessions').textContent = upcomingSessionsCount;
             
             // حساب القضايا المحجوزة للحكم
-            const reservedCasesCount = cases.filter(c => c.status === 'محجوزة للحكم').length;
+            const reservedCasesCount = cases.filter(c => c.status === 'محجوزة للحكم' && !c.archived).length;
             document.getElementById('reserved-cases-count').textContent = reservedCasesCount;
             
             // عرض أحدث القضايا
             const recentCasesBody = document.getElementById('recent-cases-body');
             recentCasesBody.innerHTML = '';
             
-            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة');
+            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة' && c.status !== 'موقوفة' && !c.archived);
             const sortedCases = [...activeCases].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
             
             sortedCases.forEach(c => {
@@ -3321,9 +3370,9 @@
             matchingClients.forEach(client => {
                 // البحث عن جميع القضايا المرتبطة بهذا الموكل
                 const clientCases = cases.filter(c => 
-                    c.plaintiffId === client.id || c.defendantId === client.id ||
+                    !c.archived && (c.plaintiffId === client.id || c.defendantId === client.id ||
                     (c.plaintiffName && c.plaintiffName.toLowerCase().includes(client.name.toLowerCase())) ||
-                    (c.defendantName && c.defendantName.toLowerCase().includes(client.name.toLowerCase()))
+                    (c.defendantName && c.defendantName.toLowerCase().includes(client.name.toLowerCase())))
                 );
                 
                 resultsHTML += `
@@ -3442,9 +3491,9 @@
             if (matchingClients.length > 0) {
                 const totalCases = matchingClients.reduce((total, client) => {
                     const clientCases = cases.filter(c => 
-                        c.plaintiffId === client.id || c.defendantId === client.id ||
+                        !c.archived && (c.plaintiffId === client.id || c.defendantId === client.id ||
                         (c.plaintiffName && c.plaintiffName.toLowerCase().includes(client.name.toLowerCase())) ||
-                        (c.defendantName && c.defendantName.toLowerCase().includes(client.name.toLowerCase()))
+                        (c.defendantName && c.defendantName.toLowerCase().includes(client.name.toLowerCase())))
                     );
                     return total + clientCases.length;
                 }, 0);
@@ -3479,9 +3528,9 @@
                 reportContent += '-'.repeat(40) + '\n';
                 
                 const clientCases = cases.filter(c => 
-                    c.plaintiffId === client.id || c.defendantId === client.id ||
+                    !c.archived && (c.plaintiffId === client.id || c.defendantId === client.id ||
                     (c.plaintiffName && c.plaintiffName.toLowerCase().includes(client.name.toLowerCase())) ||
-                    (c.defendantName && c.defendantName.toLowerCase().includes(client.name.toLowerCase()))
+                    (c.defendantName && c.defendantName.toLowerCase().includes(client.name.toLowerCase())))
                 );
                 
                 if (clientCases.length === 0) {
@@ -3565,6 +3614,7 @@
             if (searchCasesInput) {
                 const searchTerm = searchCasesInput.toLowerCase();
                 const filteredCases = cases.filter(c => {
+                    if (c.archived) return false;
                     return (
                         c.caseNumber.toLowerCase().includes(searchTerm) ||
                         c.year.toLowerCase().includes(searchTerm) ||
@@ -3640,7 +3690,7 @@
                     
                     filteredClients.forEach(client => {
                         const casesCount = cases.filter(c => 
-                            c.plaintiffId === client.id || c.defendantId === client.id
+                            !c.archived && (c.plaintiffId === client.id || c.defendantId === client.id)
                         ).length;
                         
                         resultsHTML += `
@@ -4419,22 +4469,87 @@
             updateSearchResults();
         }
         
-        // استئناف نظر قضية موقوفة (الرجوع للقضايا النشطة)
-        window.resumeSuspendedCase = function(caseId) {
-            if (!confirm('هل تريد استئناف نظر هذه القضية والرجوع بها إلى القضايا النشطة؟')) return;
-            const caseIndex = cases.findIndex(c => c.id === caseId);
-            if (caseIndex === -1) return;
+        // تعجيل الدعوى الموقوفة (فتح نافذة اختيار تاريخ جلسة التعجيل)
+        window.expediteSuspendedCase = function(caseId) {
+            const caseData = cases.find(c => c.id === caseId);
+            if (!caseData) return;
             
-            cases[caseIndex].status = 'قيد النظر';
-            delete cases[caseIndex].suspensionType;
+            const modal = document.getElementById('expedite-modal');
             
-            syncSave('cases', cases);
-            showToast('تم استئناف نظر القضية بنجاح!');
+            // الحصول على اسم المدعي والمدعى عليه
+            let plaintiffName = caseData.plaintiffName || '';
+            let defendantName = caseData.defendantName || '';
             
-            loadCasesTable();
-            loadSuspendedCasesTable();
-            updateDashboard();
-            updateSearchResults();
+            if (caseData.plaintiffId) {
+                const plaintiffClient = clients.find(client => client.id === caseData.plaintiffId);
+                if (plaintiffClient) plaintiffName = plaintiffClient.name;
+            }
+            if (caseData.defendantId) {
+                const defendantClient = clients.find(client => client.id === caseData.defendantId);
+                if (defendantClient) defendantName = defendantClient.name;
+            }
+            
+            document.getElementById('expedite-case-title').textContent = `تعجيل القضية: ${caseData.caseNumber}/${caseData.year} - ${plaintiffName} ضد ${defendantName}`;
+            document.getElementById('expedite-case-id').value = caseId;
+            document.getElementById('expedite-session-date').value = '';
+            document.getElementById('expedite-session-time').value = '09:00';
+            document.getElementById('expedite-notes').value = '';
+            
+            modal.classList.add('active');
+            
+            modal.querySelector('.close-modal').onclick = () => modal.classList.remove('active');
+            document.getElementById('cancel-expedite-btn').onclick = () => modal.classList.remove('active');
+            
+            document.getElementById('confirm-expedite-btn').onclick = function() {
+                const sessionDate = document.getElementById('expedite-session-date').value;
+                const sessionTime = document.getElementById('expedite-session-time').value;
+                const notes = document.getElementById('expedite-notes').value;
+                
+                if (!sessionDate) {
+                    showToast('يرجى اختيار تاريخ جلسة التعجيل', 'warning');
+                    return;
+                }
+                
+                const caseIndex = cases.findIndex(c => c.id === caseId);
+                if (caseIndex === -1) return;
+                
+                // إعادة القضية للحالة النشطة
+                cases[caseIndex].status = 'قيد النظر';
+                delete cases[caseIndex].suspensionType;
+                cases[caseIndex].expeditedAt = new Date().toISOString();
+                cases[caseIndex].expediteNotes = notes;
+                
+                // إضافة جلسة التعجيل الجديدة
+                if (!cases[caseIndex].sessions) {
+                    cases[caseIndex].sessions = [];
+                }
+                cases[caseIndex].sessions.push({
+                    id: cases[caseIndex].sessions.length + 1,
+                    date: sessionDate,
+                    time: sessionTime,
+                    type: 'تعجيل دعوى موقوفة',
+                    reason: 'تعجيل الدعوى من الوقف',
+                    notes: notes,
+                    status: 'مستقبلية',
+                    createdAt: new Date().toISOString()
+                });
+                
+                syncSave('cases', cases);
+                showToast('تم تعجيل الدعوى بنجاح وتحديد جلسة جديدة لها!');
+                
+                loadCasesTable();
+                loadSuspendedCasesTable();
+                updateDashboard();
+                updateSearchResults();
+                
+                modal.classList.remove('active');
+            };
+            
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
         };
         
         // نقل قضية إلى الأرشيف (من أي قائمة: القضايا، الأحكام، المشطوبة، الموقوفة)
@@ -4810,7 +4925,7 @@
                     <td>${c.suspendedDate ? formatDate(c.suspendedDate) : 'غير محدد'}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="btn-action btn-success" onclick="resumeSuspendedCase(${c.id})" title="استئناف نظر الدعوى"><i class="fas fa-play"></i> استئناف</button>
+                            <button class="btn-action btn-success" onclick="expediteSuspendedCase(${c.id})" title="تعجيل الدعوى"><i class="fas fa-fast-forward"></i> تعجيل</button>
                             <button class="btn-action btn-edit" onclick="editCase(${c.id})"><i class="fas fa-edit"></i> تعديل</button>
                             <button class="btn-action btn-delete" onclick="deleteCase(${c.id})"><i class="fas fa-trash"></i> حذف</button>
                             <button class="btn-action btn-archive" onclick="archiveCase(${c.id})" title="أرشفة"><i class="fas fa-archive"></i> أرشفة</button>
@@ -5305,7 +5420,7 @@
         
         // تصدير القضايا إلى Word
         function exportCasesToWord() {
-            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة');
+            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة' && c.status !== 'موقوفة' && !c.archived);
             
             let htmlContent = `
                 <!DOCTYPE html>
@@ -5440,7 +5555,7 @@
         
         // تصدير القضايا إلى Excel
         function exportCasesToExcel() {
-            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة');
+            const activeCases = cases.filter(c => c.status !== 'محجوزة للحكم' && c.status !== 'مشطوبة' && c.status !== 'موقوفة' && !c.archived);
             
             // تحويل البيانات إلى صيغة Excel
             const data = activeCases.map(c => {
@@ -5569,7 +5684,7 @@
             
             clients.forEach(client => {
                 const casesCount = cases.filter(c => 
-                    c.plaintiffId === client.id || c.defendantId === client.id
+                    !c.archived && (c.plaintiffId === client.id || c.defendantId === client.id)
                 ).length;
                 
                 const row = document.createElement('tr');
@@ -5935,6 +6050,7 @@
             
             // تصفية القضايا
             const filteredCases = cases.filter(c => {
+                if (c.archived) return false;
                 const matchesStatus = !selectedStatus || c.status === selectedStatus;
                 const matchesClient = !selectedClient || 
                     c.plaintiffId == selectedClient || 
@@ -6324,6 +6440,7 @@
             
             // تصفية القضايا
             const filteredCases = cases.filter(c => {
+                if (c.archived) return false;
                 if (!c.sessions || c.sessions.length === 0) return false;
                 
                 // البحث عن جلسات في التاريخ المحدد
@@ -6855,14 +6972,14 @@
         
         // زر عرض سجل الجلسات
         document.getElementById('show-history-btn').addEventListener('click', function() {
-            if (cases.length === 0) {
+            if (cases.filter(c => !c.archived).length === 0) {
                 showToast('لا توجد قضايا لعرض سجل الجلسات', 'warning');
                 return;
             }
             
             // إنشاء قائمة اختيار القضايا
             let optionsHTML = '<option value="">اختر قضية لعرض سجل الجلسات</option>';
-            cases.forEach(c => {
+            cases.filter(c => !c.archived).forEach(c => {
                 let plaintiffName = c.plaintiffName || '';
                 let defendantName = c.defendantName || '';
                 
@@ -7385,7 +7502,7 @@
             
             // إضافة حدث تجديد القضايا المشطوبة
             document.getElementById('renew-case-btn').addEventListener('click', function() {
-                const cancelledCases = cases.filter(c => c.status === 'مشطوبة');
+                const cancelledCases = cases.filter(c => c.status === 'مشطوبة' && !c.archived);
                 if (cancelledCases.length === 0) {
                     showToast('لا توجد قضايا مشطوبة للتجديد', 'warning');
                     return;
